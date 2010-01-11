@@ -1,0 +1,8 @@
+Debug
+VTune
+
+*.sln
+*.suo
+*.aps
+*.ncb
+
