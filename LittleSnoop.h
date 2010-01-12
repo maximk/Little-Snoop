@@ -29,8 +29,15 @@ public:
     BOOL removeTaskbarIcon(HWND hWnd);
 
 // Commands
+	afx_msg void OnStartTimer();
+	afx_msg void OnStopTimer();
+	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnRandomMove();
 	afx_msg void OnExit();
 	DECLARE_MESSAGE_MAP()
+
+private:
+	UINT_PTR m_nTimerId;
 };
 
 extern CLittleSnoopApp theApp;

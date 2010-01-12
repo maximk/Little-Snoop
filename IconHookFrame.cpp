@@ -19,10 +19,16 @@ CIconHookFrame::~CIconHookFrame()
 
 BEGIN_MESSAGE_MAP(CIconHookFrame, CMiniFrameWnd)
     ON_MESSAGE(WM_USER_NOTIFYICON, OnNotifyIcon)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
 // CIconHookFrame message handlers
+
+void CIconHookFrame::OnTimer(UINT_PTR nTimerId)
+{
+	SendMessage(WM_COMMAND, IDM_RANDOMMOVE);
+}
 
 LRESULT CIconHookFrame::OnNotifyIcon(WPARAM wParam, LPARAM lParam)
 {

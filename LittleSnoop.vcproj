@@ -144,6 +144,9 @@
 			RelativePath=".\LittleSnoop.h">
 		</File>
 		<File
+			RelativePath=".\Readme">
+		</File>
+		<File
 			RelativePath=".\Resource.h">
 		</File>
 		<File

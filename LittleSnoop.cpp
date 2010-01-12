@@ -6,6 +6,9 @@
 
 #include "IconHookFrame.h"
 
+// remove -- needed for temp code, call to rand()
+#include <stdlib.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -16,13 +19,17 @@ CMutex *g_pSingleInstanceMutex = NULL;
 // CLittleSnoopApp
 
 BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
-	ON_COMMAND(IDM_LITTLESNOOP_EXIT, OnExit)
+	ON_COMMAND(IDM_STARTTIMER, OnStartTimer)
+	ON_COMMAND(IDM_STOPTIMER, OnStopTimer)
+	ON_COMMAND(IDM_RANDOMMOVE, OnRandomMove)
+	ON_COMMAND(IDM_EXIT, OnExit)
 END_MESSAGE_MAP()
 
 
 // CLittleSnoopApp construction
 
 CLittleSnoopApp::CLittleSnoopApp()
+: m_nTimerId(0)
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -122,6 +129,24 @@ BOOL CLittleSnoopApp::removeTaskbarIcon(HWND hWnd)
 	nid.uID = 0;
 
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
+}
+
+void CLittleSnoopApp::OnStartTimer()
+{
+	m_nTimerId = m_pMainWnd->SetTimer(1, 1000, NULL);
+}
+
+void CLittleSnoopApp::OnStopTimer()
+{
+	m_pMainWnd->KillTimer(1);
+}
+
+void CLittleSnoopApp::OnRandomMove()
+{
+	int x = rand() % 1000;
+	int y = rand() % 1000;
+
+	m_pMainWnd->MoveWindow(x, y, 100, 100);
 }
 
 void CLittleSnoopApp::OnExit()

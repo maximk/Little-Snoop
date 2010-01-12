@@ -176,10 +176,16 @@ IDR_ICONMENU MENU
 BEGIN
     POPUP "Dummy"
     BEGIN
-        MENUITEM "Disable",                     IDM_LITTLESNOOP_DISABLE
-        MENUITEM "Settings",                    IDM_LITTLESNOOP_SETTINGS
+        MENUITEM "Little Snoop",                ID_DUMMY_LITTLESNOOP
+        , INACTIVE
         MENUITEM SEPARATOR
-        MENUITEM "Exit",                        IDM_LITTLESNOOP_EXIT
+        MENUITEM "Start Timer",                 IDM_STARTTIMER
+        MENUITEM "Stop Timer",                  IDM_STOPTIMER
+        MENUITEM "Random Move",                 IDM_RANDOMMOVE
+        MENUITEM "Disable",                     IDM_DISABLE
+        MENUITEM "Settings",                    IDM_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "Exit",                        IDM_EXIT
     END
 END
 
