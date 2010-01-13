@@ -28,6 +28,8 @@ public:
     BOOL setupTaskbarIcon(HWND hWnd, HICON hIcon);
     BOOL removeTaskbarIcon(HWND hWnd);
 
+	BOOL captureScreen(CWnd *wndDesktop);
+
 // Commands
 	afx_msg void OnStartTimer();
 	afx_msg void OnStopTimer();

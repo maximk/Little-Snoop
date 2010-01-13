@@ -131,9 +131,40 @@ BOOL CLittleSnoopApp::removeTaskbarIcon(HWND hWnd)
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
+BOOL CLittleSnoopApp::captureScreen(CWnd *wndDesktop)
+{
+	CDC dc;
+	HDC hdc = ::GetWindowDC(wndDesktop->m_hWnd);
+	dc.Attach(hdc);
+
+	CDC memDC;
+	memDC.CreateCompatibleDC(&dc);
+
+	CBitmap bm;
+	CRect r;
+	wndDesktop->GetWindowRect(&r);
+
+	//CString s;
+	//wndDesktop->GetWindowText(s);
+	CSize sz(r.Width(), r.Height());
+	bm.CreateCompatibleBitmap(&dc, sz.cx, sz.cy);
+	CBitmap * oldbm = memDC.SelectObject(&bm);
+	memDC.BitBlt(0, 0, sz.cx, sz.cy, &dc, 0, 0, SRCCOPY);
+
+	wndDesktop->OpenClipboard();
+	::EmptyClipboard();
+	::SetClipboardData(CF_BITMAP, bm.m_hObject);
+	CloseClipboard();
+
+	memDC.SelectObject(oldbm);
+	bm.Detach();  // make sure bitmap not deleted with CBitmap object
+	::ReleaseDC(wndDesktop->m_hWnd, dc.Detach());
+	return TRUE;
+}
+
 void CLittleSnoopApp::OnStartTimer()
 {
-	m_nTimerId = m_pMainWnd->SetTimer(1, 1000, NULL);
+	m_nTimerId = m_pMainWnd->SetTimer(1, 2000, NULL);
 }
 
 void CLittleSnoopApp::OnStopTimer()
@@ -143,10 +174,12 @@ void CLittleSnoopApp::OnStopTimer()
 
 void CLittleSnoopApp::OnRandomMove()
 {
-	int x = rand() % 1000;
-	int y = rand() % 1000;
+	//int x = rand() % 1000;
+	//int y = rand() % 1000;
 
-	m_pMainWnd->MoveWindow(x, y, 100, 100);
+	//m_pMainWnd->MoveWindow(x, y, 100, 100);
+
+	ASSERT(captureScreen(m_pMainWnd->GetDesktopWindow()));
 }
 
 void CLittleSnoopApp::OnExit()
