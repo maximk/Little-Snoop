@@ -133,6 +133,8 @@ BOOL CLittleSnoopApp::removeTaskbarIcon(HWND hWnd)
 
 BOOL CLittleSnoopApp::captureScreen(CWnd *wndDesktop)
 {
+	CSize capSz(320, 240);
+
 	CDC dc;
 	HDC hdc = ::GetWindowDC(wndDesktop->m_hWnd);
 	dc.Attach(hdc);
@@ -147,9 +149,9 @@ BOOL CLittleSnoopApp::captureScreen(CWnd *wndDesktop)
 	//CString s;
 	//wndDesktop->GetWindowText(s);
 	CSize sz(r.Width(), r.Height());
-	bm.CreateCompatibleBitmap(&dc, sz.cx, sz.cy);
+	bm.CreateCompatibleBitmap(&dc, capSz.cx, capSz.cy);
 	CBitmap * oldbm = memDC.SelectObject(&bm);
-	memDC.BitBlt(0, 0, sz.cx, sz.cy, &dc, 0, 0, SRCCOPY);
+	memDC.StretchBlt(0, 0, capSz.cx, capSz.cy, &dc, 0, 0, sz.cx, sz.cy, SRCCOPY);
 
 	wndDesktop->OpenClipboard();
 	::EmptyClipboard();
