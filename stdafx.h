@@ -35,6 +35,7 @@
 #include <afxext.h>         // MFC extensions
 
 //MK
+#include <afxinet.h>
 #include <afxmt.h>          // multithreading primitives
 #include <strsafe.h>
 //MK

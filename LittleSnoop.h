@@ -29,6 +29,7 @@ public:
     BOOL removeTaskbarIcon(HWND hWnd);
 
 	BOOL captureScreen(CWnd *wndDesktop);
+	BOOL postScreenshot();
 
 // Commands
 	afx_msg void OnStartTimer();
