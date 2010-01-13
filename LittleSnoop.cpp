@@ -185,6 +185,10 @@ BOOL CLittleSnoopApp::postScreenshot()
 	file->Close();
 	connection->Close();
 	session->Close();
+
+	delete file;
+	delete connection;
+	delete session;
 	return TRUE;
 }
 
