@@ -90,6 +90,7 @@ BOOL CLittleSnoopApp::InitInstance()
 
 	// create the assistant
 	m_pAssistant = new CAssistant();
+	m_pAssistant->loadOptions();
 
 	// start the application's message pump
     return TRUE;
@@ -97,7 +98,9 @@ BOOL CLittleSnoopApp::InitInstance()
 
 int CLittleSnoopApp::ExitInstance()
 {
+	m_pAssistant->updateOptions();
 	delete m_pAssistant;
+
     delete g_pSingleInstanceMutex;
 
     CoUninitialize();
