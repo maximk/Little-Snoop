@@ -41,3 +41,4 @@
 //MK
 
 #include <afxsock.h>		// MFC socket extensions
+#include <afx.h>

@@ -181,7 +181,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Start Timer",                 IDM_STARTTIMER
         MENUITEM "Stop Timer",                  IDM_STOPTIMER
-        MENUITEM "Random Move",                 IDM_RANDOMMOVE
+        MENUITEM "Capture+Post",                IDM_POSTCAPTURE
         MENUITEM "Disable",                     IDM_DISABLE
         MENUITEM "Settings",                    IDM_SETTINGS
         MENUITEM SEPARATOR

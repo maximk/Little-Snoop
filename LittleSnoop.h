@@ -9,6 +9,9 @@
 
 #include "resource.h"		// main symbols
 
+#include "Assistant.h"
+
+
 
 // CLittleSnoopApp:
 // See LittleSnoop.cpp for the implementation of this class
@@ -28,19 +31,17 @@ public:
     BOOL setupTaskbarIcon(HWND hWnd, HICON hIcon);
     BOOL removeTaskbarIcon(HWND hWnd);
 
-	BOOL captureScreen(CWnd *wndDesktop);
-	BOOL postScreenshot();
-
 // Commands
 	afx_msg void OnStartTimer();
 	afx_msg void OnStopTimer();
 	afx_msg void OnTimer(UINT nIDEvent);
-	afx_msg void OnRandomMove();
+	afx_msg void OnPostCapture();
 	afx_msg void OnExit();
 	DECLARE_MESSAGE_MAP()
 
 private:
 	UINT_PTR m_nTimerId;
+	CAssistant *m_pAssistant;
 };
 
 extern CLittleSnoopApp theApp;

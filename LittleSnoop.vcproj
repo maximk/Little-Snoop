@@ -125,12 +125,15 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
-				RelativePath=".\LittleSnoop.rc">
-			</File>
-			<File
 				RelativePath=".\res\lstray.ico">
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\Assistant.cpp">
+		</File>
+		<File
+			RelativePath=".\Assistant.h">
+		</File>
 		<File
 			RelativePath=".\IconHookFrame.cpp">
 		</File>
@@ -142,6 +145,9 @@
 		</File>
 		<File
 			RelativePath=".\LittleSnoop.h">
+		</File>
+		<File
+			RelativePath=".\LittleSnoop.rc">
 		</File>
 		<File
 			RelativePath=".\Readme">
@@ -169,5 +175,8 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="LittleSnoop.rc"/>
 	</Globals>
 </VisualStudioProject>

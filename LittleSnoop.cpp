@@ -21,7 +21,7 @@ CMutex *g_pSingleInstanceMutex = NULL;
 BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
 	ON_COMMAND(IDM_STARTTIMER, OnStartTimer)
 	ON_COMMAND(IDM_STOPTIMER, OnStopTimer)
-	ON_COMMAND(IDM_RANDOMMOVE, OnRandomMove)
+	ON_COMMAND(IDM_POSTCAPTURE, OnPostCapture)
 	ON_COMMAND(IDM_EXIT, OnExit)
 END_MESSAGE_MAP()
 
@@ -81,12 +81,15 @@ BOOL CLittleSnoopApp::InitInstance()
     if(!pHook->Create(NULL, NULL, 0, CRect(10, 10, 100, 100)))
         return FALSE;
 
-    pHook->ShowWindow(SW_SHOWNORMAL);
-    pHook->UpdateWindow();
+    //pHook->ShowWindow(SW_SHOWNORMAL);
+    //pHook->UpdateWindow();
 
     // setup tray icon
     HICON hIcon = LoadIcon(IDI_TRAYICON);
     ASSERT(setupTaskbarIcon(m_pMainWnd->GetSafeHwnd(), hIcon));
+
+	// create the assistant
+	m_pAssistant = new CAssistant();
 
 	// start the application's message pump
     return TRUE;
@@ -94,6 +97,7 @@ BOOL CLittleSnoopApp::InitInstance()
 
 int CLittleSnoopApp::ExitInstance()
 {
+	delete m_pAssistant;
     delete g_pSingleInstanceMutex;
 
     CoUninitialize();
@@ -131,67 +135,6 @@ BOOL CLittleSnoopApp::removeTaskbarIcon(HWND hWnd)
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-BOOL CLittleSnoopApp::captureScreen(CWnd *wndDesktop)
-{
-	CSize capSz(320, 240);	//TODO: do some smart shrinking probably look at the default screen font size
-
-	CDC dc;
-	HDC hdc = ::GetWindowDC(wndDesktop->m_hWnd);
-	dc.Attach(hdc);
-
-	CDC memDC;
-	memDC.CreateCompatibleDC(&dc);
-
-	CBitmap bm;
-	CRect r;
-	wndDesktop->GetWindowRect(&r);
-
-	//CString s;
-	//wndDesktop->GetWindowText(s);
-	CSize sz(r.Width(), r.Height());
-	bm.CreateCompatibleBitmap(&dc, capSz.cx, capSz.cy);
-	CBitmap * oldbm = memDC.SelectObject(&bm);
-
-	//TODO: StretchBlt mode may not be right; image is jagged
-	memDC.StretchBlt(0, 0, capSz.cx, capSz.cy, &dc, 0, 0, sz.cx, sz.cy, SRCCOPY);
-
-	wndDesktop->OpenClipboard();
-	::EmptyClipboard();
-	::SetClipboardData(CF_BITMAP, bm.m_hObject);
-	CloseClipboard();
-
-	memDC.SelectObject(oldbm);
-	bm.Detach();  // make sure bitmap not deleted with CBitmap object
-	::ReleaseDC(wndDesktop->m_hWnd, dc.Detach());
-	return TRUE;
-}
-
-BOOL CLittleSnoopApp::postScreenshot()
-{
-	// curl -X POST -H "Content-Type: application/json"
-	// -d "{\"u\":\"angel1\",\"snap\":\"100\"}" http://localhost:5984/som
-
-	CString doc("{\"snap\":100}");
-
-	CInternetSession *session = new CInternetSession();
-	CHttpConnection *connection = session->GetHttpConnection("localhost", (INTERNET_PORT)5984);	//TODO: hard-coded
-	CHttpFile *file = connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "som"); //TODO: ditto
-
-	file->AddRequestHeaders("Content-Type: application/json\r\n");
-	file->SendRequestEx(doc.GetLength());
-	file->WriteString(doc);
-	file->EndRequest();
-
-	file->Close();
-	connection->Close();
-	session->Close();
-
-	delete file;
-	delete connection;
-	delete session;
-	return TRUE;
-}
-
 void CLittleSnoopApp::OnStartTimer()
 {
 	m_nTimerId = m_pMainWnd->SetTimer(1, 2000, NULL);
@@ -202,15 +145,15 @@ void CLittleSnoopApp::OnStopTimer()
 	m_pMainWnd->KillTimer(1);
 }
 
-void CLittleSnoopApp::OnRandomMove()
+void CLittleSnoopApp::OnPostCapture()
 {
 	//int x = rand() % 1000;
 	//int y = rand() % 1000;
 
 	//m_pMainWnd->MoveWindow(x, y, 100, 100);
 
-	ASSERT(captureScreen(m_pMainWnd->GetDesktopWindow()));
-	ASSERT(postScreenshot());
+	ASSERT(m_pAssistant->captureScreen(m_pMainWnd->GetDesktopWindow()));
+	ASSERT(m_pAssistant->postScreenshot());
 }
 
 void CLittleSnoopApp::OnExit()
