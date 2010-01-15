@@ -156,6 +156,12 @@
 			RelativePath=".\Resource.h">
 		</File>
 		<File
+			RelativePath=".\Screenshot.cpp">
+		</File>
+		<File
+			RelativePath=".\Screenshot.h">
+		</File>
+		<File
 			RelativePath=".\SettingsDlg.cpp">
 		</File>
 		<File

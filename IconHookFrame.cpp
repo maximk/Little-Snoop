@@ -27,7 +27,7 @@ END_MESSAGE_MAP()
 
 void CIconHookFrame::OnTimer(UINT_PTR nTimerId)
 {
-	SendMessage(WM_COMMAND, IDM_RANDOMMOVE);
+	SendMessage(WM_COMMAND, IDM_POSTCAPTURE);
 }
 
 LRESULT CIconHookFrame::OnNotifyIcon(WPARAM wParam, LPARAM lParam)
