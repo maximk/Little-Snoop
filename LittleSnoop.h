@@ -36,6 +36,7 @@ public:
 	afx_msg void OnStopTimer();
 	afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg void OnPostCapture();
+	afx_msg void OnSettings();
 	afx_msg void OnExit();
 	DECLARE_MESSAGE_MAP()
 

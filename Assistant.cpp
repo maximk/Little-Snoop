@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "LittleSnoop.h"
 #include "Assistant.h"
+#include "SettingsDlg.h"
 
 #define MAX_OPTION_SIZE 100
 
@@ -121,3 +122,33 @@ BOOL CAssistant::postScreenshot()
 }
 
 // CAssistant member functions
+
+void CAssistant::showSettingsDialog()
+{
+	CSettingsDlg dlg;
+
+	dlg.sHostName = m_sSnoopOnMeHost;
+	dlg.nPort = m_nSnoopOnMePort;
+	dlg.sUserName = m_sUser;
+	dlg.sPassword = m_sPassword;
+	dlg.nSchedule = m_nSchedule;
+	dlg.nShrinkWidth = m_nShrinkWidth;
+	dlg.nShrinkHeight = m_nShrinkHeight;
+	dlg.nThumbWidth = m_nThumbWidth;
+	dlg.nThumbHeight = m_nThumbHeight;
+
+	if (dlg.DoModal() == IDOK)
+	{
+		m_sSnoopOnMeHost = dlg.sHostName;
+		m_nSnoopOnMePort = dlg.nPort;
+		m_sUser = dlg.sUserName;
+		m_sPassword = dlg.sPassword;
+		m_nSchedule = dlg.nSchedule;
+		m_nShrinkWidth = dlg.nShrinkWidth;
+		m_nShrinkHeight = dlg.nShrinkHeight;
+		m_nThumbWidth = dlg.nThumbWidth;
+		m_nThumbHeight = dlg.nThumbHeight;
+	}
+}
+
+//EOF

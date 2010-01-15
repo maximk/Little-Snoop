@@ -22,6 +22,7 @@ BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
 	ON_COMMAND(IDM_STARTTIMER, OnStartTimer)
 	ON_COMMAND(IDM_STOPTIMER, OnStopTimer)
 	ON_COMMAND(IDM_POSTCAPTURE, OnPostCapture)
+	ON_COMMAND(IDM_SETTINGS, OnSettings)
 	ON_COMMAND(IDM_EXIT, OnExit)
 END_MESSAGE_MAP()
 
@@ -157,6 +158,11 @@ void CLittleSnoopApp::OnPostCapture()
 
 	ASSERT(m_pAssistant->captureScreen(m_pMainWnd->GetDesktopWindow()));
 	ASSERT(m_pAssistant->postScreenshot());
+}
+
+void CLittleSnoopApp::OnSettings()
+{
+	m_pAssistant->showSettingsDialog();
 }
 
 void CLittleSnoopApp::OnExit()

@@ -16,6 +16,8 @@ public:
 	BOOL captureScreen(CWnd *wndDesktop);
 	BOOL postScreenshot();
 
+	void showSettingsDialog();
+
 private:
 	// configuration options
 
