@@ -136,6 +136,12 @@
 			RelativePath=".\Assistant.h">
 		</File>
 		<File
+			RelativePath=".\Base64.cpp">
+		</File>
+		<File
+			RelativePath=".\Base64.h">
+		</File>
+		<File
 			RelativePath=".\IconHookFrame.cpp">
 		</File>
 		<File

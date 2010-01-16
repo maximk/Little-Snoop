@@ -7,6 +7,8 @@
 #include "Assistant.h"
 #include "SettingsDlg.h"
 
+#include "Base64.h"
+
 #define MAX_OPTION_SIZE 100
 
 using namespace Gdiplus;
@@ -171,8 +173,6 @@ int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], 
 
 BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int count)
 {
-	CString boundary = _T("FFF3F395A90B452BB8BEDC878DDBD152");
-
 	CInternetSession *session = new CInternetSession();
 	//CHttpConnection *connection =
 	//	session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
@@ -191,7 +191,15 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 	// height1:
 	// snapshot1:
 
-	CString encodedPng = "gdheyfjfkgur94jssye73847";
+	LPSTREAM str;
+	CreateStreamOnHGlobal(NULL, TRUE, &str);
+
+	CLSID clsid;
+	GetEncoderClsid(L"image/png", &clsid);
+
+	snaps[0]->Save(str, &clsid);
+	CString encodedPng = CBase64::encode(str);
+	str->Release();
 
 	CString doc;
 	doc.Format(_T("{"

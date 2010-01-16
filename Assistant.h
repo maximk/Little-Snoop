@@ -47,6 +47,7 @@ private:
 	// Dimensions of a thumbnail image (80x60)
 	int m_nThumbWidth;
 	int m_nThumbHeight;
+
 };
 
 //EOF
