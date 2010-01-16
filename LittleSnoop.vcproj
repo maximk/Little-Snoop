@@ -33,6 +33,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="gdiplus.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
@@ -154,12 +155,6 @@
 		</File>
 		<File
 			RelativePath=".\Resource.h">
-		</File>
-		<File
-			RelativePath=".\Screenshot.cpp">
-		</File>
-		<File
-			RelativePath=".\Screenshot.h">
 		</File>
 		<File
 			RelativePath=".\SettingsDlg.cpp">

@@ -11,6 +11,8 @@
 
 #include "Assistant.h"
 
+// Maximum number of physical screens
+#define MAX_SCREENS 8
 
 
 // CLittleSnoopApp:
@@ -41,6 +43,7 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 private:
+	ULONG_PTR m_lGdiplusToken;
 	UINT_PTR m_nTimerId;
 	CAssistant *m_pAssistant;
 };

@@ -13,6 +13,8 @@
 #define new DEBUG_NEW
 #endif
 
+using namespace Gdiplus;
+
 CString g_sKey = _T("LitteSnoop");
 CMutex *g_pSingleInstanceMutex = NULL;
 
@@ -47,6 +49,9 @@ CLittleSnoopApp theApp;
 BOOL CLittleSnoopApp::InitInstance()
 {
 	CWinApp::InitInstance();
+
+	GdiplusStartupInput input;
+	GdiplusStartup(&m_lGdiplusToken, &input, NULL);
 
 	if (!AfxSocketInit())
 	{
@@ -104,7 +109,7 @@ int CLittleSnoopApp::ExitInstance()
 
     delete g_pSingleInstanceMutex;
 
-    CoUninitialize();
+	GdiplusShutdown(m_lGdiplusToken);
 
     return CWinApp::ExitInstance();
 }
@@ -151,13 +156,21 @@ void CLittleSnoopApp::OnStopTimer()
 
 void CLittleSnoopApp::OnPostCapture()
 {
-	//int x = rand() % 1000;
-	//int y = rand() % 1000;
+	CSize sizes[MAX_SCREENS];
+	Bitmap *snapshots[MAX_SCREENS];
+	Bitmap *thumbnails[MAX_SCREENS];
 
-	//m_pMainWnd->MoveWindow(x, y, 100, 100);
+	int n = m_pAssistant->captureScreen(snapshots, thumbnails, sizes, MAX_SCREENS);
 
-	ASSERT(m_pAssistant->captureScreen(m_pMainWnd->GetDesktopWindow()));
-	ASSERT(m_pAssistant->postScreenshot());
+	if (n > 0)
+	{
+		CLSID clsid;
+		CAssistant::GetEncoderClsid(L"image/png", &clsid);
+		snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
+	}
+
+	//ASSERT(m_pAssistant->captureScreen2(m_pMainWnd->GetDesktopWindow()));
+	//ASSERT(m_pAssistant->postScreenshot());
 }
 
 void CLittleSnoopApp::OnSettings()

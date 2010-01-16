@@ -1,6 +1,7 @@
 #pragma once
 
 
+using namespace Gdiplus;
 
 // CAssistant command target
 
@@ -13,7 +14,8 @@ public:
 	BOOL loadOptions();
 	BOOL updateOptions();
 
-	BOOL captureScreen(CWnd *wndDesktop);
+	static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
+	int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int max_count);
 	BOOL postScreenshot();
 
 	void showSettingsDialog();

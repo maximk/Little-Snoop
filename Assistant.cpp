@@ -2,11 +2,16 @@
 //
 
 #include "stdafx.h"
+
 #include "LittleSnoop.h"
 #include "Assistant.h"
 #include "SettingsDlg.h"
 
 #define MAX_OPTION_SIZE 100
+
+using namespace Gdiplus;
+
+int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
 
 // CAssistant
 
@@ -60,37 +65,108 @@ BOOL CAssistant::updateOptions()
 	return TRUE;
 }
 
-BOOL CAssistant::captureScreen(CWnd *wndDesktop)
+//BOOL CAssistant::captureScreen(CWnd *wndDesktop)
+//{
+//	CDC dc;
+//	HDC hdc = ::GetWindowDC(wndDesktop->m_hWnd);
+//	dc.Attach(hdc);
+//
+//	CDC memDC;
+//	memDC.CreateCompatibleDC(&dc);
+//
+//	CBitmap bm;
+//	CRect r;
+//	wndDesktop->GetWindowRect(&r);
+//
+//	//CString s;
+//	//wndDesktop->GetWindowText(s);
+//	CSize sz(r.Width(), r.Height());
+//	bm.CreateCompatibleBitmap(&dc, m_nShrinkWidth, m_nShrinkHeight);
+//	CBitmap * oldbm = memDC.SelectObject(&bm);
+//
+//	//TODO: StretchBlt mode may not be right; image is jagged
+//	memDC.StretchBlt(0, 0, m_nShrinkWidth, m_nShrinkHeight, &dc, 0, 0, sz.cx, sz.cy, SRCCOPY);
+//
+//	wndDesktop->OpenClipboard();
+//	::EmptyClipboard();
+//	::SetClipboardData(CF_BITMAP, bm.m_hObject);
+//	CloseClipboard();
+//
+//	memDC.SelectObject(oldbm);
+//	bm.Detach();  // make sure bitmap not deleted with CBitmap object
+//	::ReleaseDC(wndDesktop->m_hWnd, dc.Detach());
+//	return TRUE;
+//}
+
+struct CaptureContext
 {
-	CDC dc;
-	HDC hdc = ::GetWindowDC(wndDesktop->m_hWnd);
-	dc.Attach(hdc);
+	int count;
+	int max_count;
+	CSize *sizes;
+	Bitmap **snapshots;
+	Bitmap **thumbnails;
+	int shrinkWidth;
+	int shrinkHeight;
+};
 
-	CDC memDC;
-	memDC.CreateCompatibleDC(&dc);
+BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
+							   HDC hdcMonitor,
+                               LPRECT lprcMonitor,
+							   LPARAM dwData)
+{
+	CaptureContext *context = (CaptureContext *)dwData;
 
-	CBitmap bm;
-	CRect r;
-	wndDesktop->GetWindowRect(&r);
+	if (context->count >= context->max_count)
+		return FALSE;
 
-	//CString s;
-	//wndDesktop->GetWindowText(s);
-	CSize sz(r.Width(), r.Height());
-	bm.CreateCompatibleBitmap(&dc, m_nShrinkWidth, m_nShrinkHeight);
-	CBitmap * oldbm = memDC.SelectObject(&bm);
+	MONITORINFOEX monitorInfo;
+	memset(&monitorInfo, 0x0, sizeof(MONITORINFOEX));
+	monitorInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfo(hMonitor, &monitorInfo);
 
-	//TODO: StretchBlt mode may not be right; image is jagged
-	memDC.StretchBlt(0, 0, m_nShrinkWidth, m_nShrinkHeight, &dc, 0, 0, sz.cx, sz.cy, SRCCOPY);
+	// Create a bitmap for the current screen
+	Bitmap *bm = new Bitmap(context->shrinkWidth, context->shrinkHeight);
 
-	wndDesktop->OpenClipboard();
-	::EmptyClipboard();
-	::SetClipboardData(CF_BITMAP, bm.m_hObject);
-	CloseClipboard();
+	// Get a graphics object for the bitmap and initialize it...
+	Graphics *g = Graphics::FromImage(bm);     
 
-	memDC.SelectObject(oldbm);
-	bm.Detach();  // make sure bitmap not deleted with CBitmap object
-	::ReleaseDC(wndDesktop->m_hWnd, dc.Detach());
+	g->SetCompositingQuality(CompositingQualityHighSpeed);	//TODO: check other settings
+
+	// Get HDCs for source and destination...
+	HDC hdcDestination = g->GetHDC();
+	HDC hdcSource = ::CreateDC(NULL, monitorInfo.szDevice, NULL, NULL);
+
+	// Move the bits...
+	StretchBlt(hdcDestination, 0, 0, context->shrinkWidth, context->shrinkHeight, 
+					hdcSource, 0, 0, lprcMonitor->right, lprcMonitor->bottom, SRCCOPY | CAPTUREBLT);
+	    
+	// Cleanup source and destination HDC...
+	DeleteDC(hdcSource);                    
+	g->ReleaseHDC(hdcDestination);
+
+	CSize size(lprcMonitor->right, lprcMonitor->bottom);
+	context->sizes[context->count] = size;
+	context->snapshots[context->count] = bm;
+	context->thumbnails[context->count] = NULL;
+	context->count++;
+
 	return TRUE;
+}
+
+int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int max_count)
+{
+	CaptureContext context;
+	context.count = 0;
+	context.max_count = max_count;
+	context.sizes = sizes;
+	context.snapshots = snaps;
+	context.thumbnails = thumbs;
+	context.shrinkWidth = m_nShrinkWidth;
+	context.shrinkHeight = m_nShrinkHeight;
+
+	::EnumDisplayMonitors(NULL, NULL, captureOneScreen, (LPARAM)&context);
+
+	return context.count;
 }
 
 BOOL CAssistant::postScreenshot()
@@ -149,6 +225,37 @@ void CAssistant::showSettingsDialog()
 		m_nThumbWidth = dlg.nThumbWidth;
 		m_nThumbHeight = dlg.nThumbHeight;
 	}
+}
+
+int CAssistant::GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
+{
+   UINT  num = 0;          // number of image encoders
+   UINT  size = 0;         // size of the image encoder array in bytes
+
+   ImageCodecInfo* pImageCodecInfo = NULL;
+
+   GetImageEncodersSize(&num, &size);
+   if(size == 0)
+      return -1;  // Failure
+
+   pImageCodecInfo = (ImageCodecInfo*)(malloc(size));
+   if(pImageCodecInfo == NULL)
+      return -1;  // Failure
+
+   GetImageEncoders(num, size, pImageCodecInfo);
+
+   for(UINT j = 0; j < num; ++j)
+   {
+      if( wcscmp(pImageCodecInfo[j].MimeType, format) == 0 )
+      {
+         *pClsid = pImageCodecInfo[j].Clsid;
+         free(pImageCodecInfo);
+         return j;  // Success
+      }    
+   }
+
+   free(pImageCodecInfo);
+   return -1;  // Failure
 }
 
 //EOF
