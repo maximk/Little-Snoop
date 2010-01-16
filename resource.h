@@ -17,7 +17,6 @@
 #define IDC_SHRINK_WIDTH                1005
 #define IDC_SHRINK_HEIGHT               1006
 #define IDC_THUMB_WIDTH                 1007
-#define IDC_SHRINK_HEIGHT2              1008
 #define IDC_THUMB_HEIGHT                1008
 #define IDM_DISABLE                     32783
 #define IDM_SETTINGS                    32784
@@ -31,7 +30,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_RESOURCE_VALUE        134
 #define _APS_NEXT_COMMAND_VALUE         32793
 #define _APS_NEXT_CONTROL_VALUE         1005
 #define _APS_NEXT_SYMED_VALUE           102

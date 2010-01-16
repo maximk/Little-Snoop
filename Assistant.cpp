@@ -109,6 +109,8 @@ struct CaptureContext
 	Bitmap **thumbnails;
 	int shrinkWidth;
 	int shrinkHeight;
+	int thumbWidth;
+	int thumbHeight;
 };
 
 BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
@@ -126,30 +128,37 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 	monitorInfo.cbSize = sizeof(MONITORINFOEX);
 	GetMonitorInfo(hMonitor, &monitorInfo);
 
-	// Create a bitmap for the current screen
-	Bitmap *bm = new Bitmap(context->shrinkWidth, context->shrinkHeight);
+	// Create bitmaps for the current screen
+	Bitmap *bm1 = new Bitmap(context->shrinkWidth, context->shrinkHeight);
+	Bitmap *bm2 = new Bitmap(context->thumbWidth, context->thumbHeight);
 
-	// Get a graphics object for the bitmap and initialize it...
-	Graphics *g = Graphics::FromImage(bm);     
+	// Get graphics objects for the bitmaps and initialize it...
+	Graphics *g1 = Graphics::FromImage(bm1);
+	Graphics *g2 = Graphics::FromImage(bm2);
 
-	g->SetCompositingQuality(CompositingQualityHighSpeed);	//TODO: check other settings
+	g1->SetCompositingQuality(CompositingQualityHighSpeed);	//TODO: check other settings
+	g2->SetCompositingQuality(CompositingQualityHighSpeed);
 
 	// Get HDCs for source and destination...
-	HDC hdcDestination = g->GetHDC();
+	HDC hdcDestination1 = g1->GetHDC();
+	HDC hdcDestination2 = g2->GetHDC();
 	HDC hdcSource = ::CreateDC(NULL, monitorInfo.szDevice, NULL, NULL);
 
-	// Move the bits...
-	StretchBlt(hdcDestination, 0, 0, context->shrinkWidth, context->shrinkHeight, 
+	// Move the bits to snapshot and thumbnail...
+	StretchBlt(hdcDestination1, 0, 0, context->shrinkWidth, context->shrinkHeight, 
+					hdcSource, 0, 0, lprcMonitor->right, lprcMonitor->bottom, SRCCOPY | CAPTUREBLT);
+	StretchBlt(hdcDestination2, 0, 0, context->thumbWidth, context->thumbHeight, 
 					hdcSource, 0, 0, lprcMonitor->right, lprcMonitor->bottom, SRCCOPY | CAPTUREBLT);
 	    
 	// Cleanup source and destination HDC...
 	DeleteDC(hdcSource);                    
-	g->ReleaseHDC(hdcDestination);
+	g1->ReleaseHDC(hdcDestination1);
+	g2->ReleaseHDC(hdcDestination2);
 
 	CSize size(lprcMonitor->right, lprcMonitor->bottom);
 	context->sizes[context->count] = size;
-	context->snapshots[context->count] = bm;
-	context->thumbnails[context->count] = NULL;
+	context->snapshots[context->count] = bm1;
+	context->thumbnails[context->count] = bm2;
 	context->count++;
 
 	return TRUE;
@@ -165,6 +174,8 @@ int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], 
 	context.thumbnails = thumbs;
 	context.shrinkWidth = m_nShrinkWidth;
 	context.shrinkHeight = m_nShrinkHeight;
+	context.thumbWidth = m_nThumbWidth;
+	context.thumbHeight = m_nThumbHeight;
 
 	::EnumDisplayMonitors(NULL, NULL, captureOneScreen, (LPARAM)&context);
 
@@ -176,29 +187,33 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 	CInternetSession *session = new CInternetSession();
 	CHttpConnection *connection =
 		session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
-	//CHttpConnection *connection =
-	//	session->GetHttpConnection("localhost", (INTERNET_PORT)5984);
 	CHttpFile *file =
 		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
-	//CHttpFile *file =
-	//	connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "som2");
 
 	// user:
 	// when:
+	//
 	// orig_width1:
 	// orig_height1:
 	// width1:
 	// height1:
 	// snapshot1:
-
-	LPSTREAM str;
-	CreateStreamOnHGlobal(NULL, TRUE, &str);
+	// thumbnail1:
+	//
+	// orig_width2:
+	// ...
 
 	CLSID clsid;
 	GetEncoderClsid(L"image/png", &clsid);
 
+	LPSTREAM str;
+	CreateStreamOnHGlobal(NULL, TRUE, &str);
 	snaps[0]->Save(str, &clsid);
-	CString encodedPng = CBase64::encode(str);
+	CString encodedPng1 = CBase64::encode(str);
+	str->Release();
+	CreateStreamOnHGlobal(NULL, TRUE, &str);
+	thumbs[0]->Save(str, &clsid);
+	CString encodedPng2 = CBase64::encode(str);
 	str->Release();
 
 	CString doc;
@@ -209,14 +224,16 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 		"\"orig_height1\":%d,"
 		"\"width1\":%d,"
 		"\"height1\":%d,"
-		"\"snapshot1\":\"%s\""
+		"\"snapshot1\":\"%s\","
+		"\"thumbnail1\":\"%s\""
 		"}",
 		m_sUser,
 		sizes[0].cx,
 		sizes[0].cy,
 		snaps[0]->GetWidth(),
 		snaps[0]->GetHeight(),
-		encodedPng);
+		encodedPng1,
+		encodedPng2);
 
 	file->AddRequestHeaders("Content-Type: application/json\r\n");
 	file->SendRequestEx(doc.GetLength());
