@@ -169,20 +169,48 @@ int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], 
 	return context.count;
 }
 
-BOOL CAssistant::postScreenshot()
+BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int count)
 {
-	// curl -X POST -H "Content-Type: application/json"
-	// -d "{\"u\":\"angel1\",\"snap\":\"100\"}" http://localhost:5984/som
-
-	CString doc("{\"snap\":100}");
+	CString boundary = _T("FFF3F395A90B452BB8BEDC878DDBD152");
 
 	CInternetSession *session = new CInternetSession();
+	//CHttpConnection *connection =
+	//	session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
 	CHttpConnection *connection =
-		session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
+		session->GetHttpConnection("localhost", (INTERNET_PORT)5984);
+	//CHttpFile *file =
+	//	connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
 	CHttpFile *file =
-		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
+		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, _T("som2"));
 
-	file->AddRequestHeaders("Content-Type: application/json\r\n");
+	// user:
+	// when:
+	// orig_width1:
+	// orig_height1:
+	// width1:
+	// height1:
+	// snapshot1:
+
+	CString encodedPng = "gdheyfjfkgur94jssye73847";
+
+	CString doc;
+	doc.Format(_T("{"
+		"\"user\":\"%s\","
+		"\"when\":\"just_in_time\","
+		"\"orig_width1\":%d,"
+		"\"orig_height1\":%d,"
+		"\"width1\":%d,"
+		"\"height1\":%d,"
+		"\"snapshot1\":\"%s\""
+		"}"),
+		m_sUser,
+		sizes[0].cx,
+		sizes[0].cy,
+		snaps[0]->GetWidth(),
+		snaps[0]->GetHeight(),
+		encodedPng);
+
+	file->AddRequestHeaders(_T("Content-Type: application/json\r\n"));
 	file->SendRequestEx(doc.GetLength());
 	file->WriteString(doc);
 	file->EndRequest();

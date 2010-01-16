@@ -180,6 +180,9 @@
 		<File
 			RelativePath=".\stdafx.h">
 		</File>
+		<File
+			RelativePath=".\Todo">
+		</File>
 	</Files>
 	<Globals>
 		<Global

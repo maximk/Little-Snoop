@@ -164,13 +164,14 @@ void CLittleSnoopApp::OnPostCapture()
 
 	if (n > 0)
 	{
-		CLSID clsid;
-		CAssistant::GetEncoderClsid(L"image/png", &clsid);
-		snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
+		//CLSID clsid;
+		//CAssistant::GetEncoderClsid(L"image/png", &clsid);
+		//snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
+
+		m_pAssistant->postScreenshot(snapshots, thumbnails, sizes, 1);
 	}
 
-	//ASSERT(m_pAssistant->captureScreen2(m_pMainWnd->GetDesktopWindow()));
-	//ASSERT(m_pAssistant->postScreenshot());
+	//TODO: clean up bitmaps
 }
 
 void CLittleSnoopApp::OnSettings()
