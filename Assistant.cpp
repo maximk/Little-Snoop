@@ -105,8 +105,8 @@ struct CaptureContext
 	int count;
 	int max_count;
 	CSize *sizes;
-	Bitmap **snapshots;
-	Bitmap **thumbnails;
+	Image **snapshots;
+	Image **thumbnails;
 	int shrinkWidth;
 	int shrinkHeight;
 	int thumbWidth;
@@ -129,42 +129,37 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 	GetMonitorInfo(hMonitor, &monitorInfo);
 
 	// Create bitmaps for the current screen
-	Bitmap *bm1 = new Bitmap(context->shrinkWidth, context->shrinkHeight);
-	Bitmap *bm2 = new Bitmap(context->thumbWidth, context->thumbHeight);
-
-	// Get graphics objects for the bitmaps and initialize it...
-	Graphics *g1 = Graphics::FromImage(bm1);
-	Graphics *g2 = Graphics::FromImage(bm2);
-
-	g1->SetCompositingQuality(CompositingQualityHighSpeed);	//TODO: check other settings
-	g2->SetCompositingQuality(CompositingQualityHighSpeed);
+	Bitmap *bmp = new Bitmap(lprcMonitor->right, lprcMonitor->bottom);
+	// Get graphics object for the bitmap and initialize it
+	Graphics *graphics = Graphics::FromImage(bmp);
 
 	// Get HDCs for source and destination...
-	HDC hdcDestination1 = g1->GetHDC();
-	HDC hdcDestination2 = g2->GetHDC();
+	HDC hdcDestination = graphics->GetHDC();
 	HDC hdcSource = ::CreateDC(NULL, monitorInfo.szDevice, NULL, NULL);
 
 	// Move the bits to snapshot and thumbnail...
-	StretchBlt(hdcDestination1, 0, 0, context->shrinkWidth, context->shrinkHeight, 
-					hdcSource, 0, 0, lprcMonitor->right, lprcMonitor->bottom, SRCCOPY | CAPTUREBLT);
-	StretchBlt(hdcDestination2, 0, 0, context->thumbWidth, context->thumbHeight, 
+	StretchBlt(hdcDestination, 0, 0, lprcMonitor->right, lprcMonitor->bottom, 
 					hdcSource, 0, 0, lprcMonitor->right, lprcMonitor->bottom, SRCCOPY | CAPTUREBLT);
 	    
 	// Cleanup source and destination HDC...
 	DeleteDC(hdcSource);                    
-	g1->ReleaseHDC(hdcDestination1);
-	g2->ReleaseHDC(hdcDestination2);
+	graphics->ReleaseHDC(hdcDestination);
+
+	// Shrink image size to render text invisible; also make a thumbnail image
+	Image *shrunk = bmp->GetThumbnailImage(context->shrinkWidth, context->shrinkHeight);
+	Image *thumb = bmp->GetThumbnailImage(context->thumbWidth, context->thumbHeight);
+	delete bmp;
 
 	CSize size(lprcMonitor->right, lprcMonitor->bottom);
 	context->sizes[context->count] = size;
-	context->snapshots[context->count] = bm1;
-	context->thumbnails[context->count] = bm2;
+	context->snapshots[context->count] = shrunk;
+	context->thumbnails[context->count] = thumb;
 	context->count++;
 
 	return TRUE;
 }
 
-int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int max_count)
+int CAssistant::captureScreen(Image *snaps[], Image *thumbs[], CSize sizes[], int max_count)
 {
 	CaptureContext context;
 	context.count = 0;
@@ -182,7 +177,7 @@ int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], 
 	return context.count;
 }
 
-BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int count)
+BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], int count)
 {
 	CInternetSession *session = new CInternetSession();
 	CHttpConnection *connection =

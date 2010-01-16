@@ -157,8 +157,8 @@ void CLittleSnoopApp::OnStopTimer()
 void CLittleSnoopApp::OnPostCapture()
 {
 	CSize sizes[MAX_SCREENS];
-	Bitmap *snapshots[MAX_SCREENS];
-	Bitmap *thumbnails[MAX_SCREENS];
+	Image *snapshots[MAX_SCREENS];
+	Image *thumbnails[MAX_SCREENS];
 
 	int n = m_pAssistant->captureScreen(snapshots, thumbnails, sizes, MAX_SCREENS);
 
@@ -171,7 +171,11 @@ void CLittleSnoopApp::OnPostCapture()
 		//m_pAssistant->postScreenshot(snapshots, thumbnails, sizes, 1);
 	}
 
-	//TODO: clean up bitmaps
+	for (int i = 0; i < n; i++)
+	{
+		delete snapshots[i];
+		delete thumbnails[i];
+	}
 }
 
 void CLittleSnoopApp::OnSettings()

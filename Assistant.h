@@ -15,8 +15,8 @@ public:
 	BOOL updateOptions();
 
 	static int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
-	int captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int max_count);
-	BOOL postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int count);
+	int captureScreen(Image *snaps[], Image *thumbs[], CSize sizes[], int max_count);
+	BOOL postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], int count);
 
 	void showSettingsDialog();
 
