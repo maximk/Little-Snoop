@@ -174,14 +174,14 @@ int CAssistant::captureScreen(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], 
 BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[], int count)
 {
 	CInternetSession *session = new CInternetSession();
-	//CHttpConnection *connection =
-	//	session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
 	CHttpConnection *connection =
-		session->GetHttpConnection("localhost", (INTERNET_PORT)5984);
-	//CHttpFile *file =
-	//	connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
+		session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
+	//CHttpConnection *connection =
+	//	session->GetHttpConnection("localhost", (INTERNET_PORT)5984);
 	CHttpFile *file =
-		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, _T("som2"));
+		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
+	//CHttpFile *file =
+	//	connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "som2");
 
 	// user:
 	// when:
@@ -202,7 +202,7 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 	str->Release();
 
 	CString doc;
-	doc.Format(_T("{"
+	doc.Format("{"
 		"\"user\":\"%s\","
 		"\"when\":\"just_in_time\","
 		"\"orig_width1\":%d,"
@@ -210,7 +210,7 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 		"\"width1\":%d,"
 		"\"height1\":%d,"
 		"\"snapshot1\":\"%s\""
-		"}"),
+		"}",
 		m_sUser,
 		sizes[0].cx,
 		sizes[0].cy,
@@ -218,7 +218,7 @@ BOOL CAssistant::postScreenshot(Bitmap *snaps[], Bitmap *thumbs[], CSize sizes[]
 		snaps[0]->GetHeight(),
 		encodedPng);
 
-	file->AddRequestHeaders(_T("Content-Type: application/json\r\n"));
+	file->AddRequestHeaders("Content-Type: application/json\r\n");
 	file->SendRequestEx(doc.GetLength());
 	file->WriteString(doc);
 	file->EndRequest();
