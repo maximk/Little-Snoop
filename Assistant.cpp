@@ -185,7 +185,6 @@ BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], 
 	CHttpFile *file =
 		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
 
-	// user:
 	// when:
 	//
 	// orig_width1:
@@ -213,20 +212,22 @@ BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], 
 
 	CString doc;
 	doc.Format("{"
-		"\"user\":\"%s\","
 		"\"when\":\"just_in_time\","
 		"\"orig_width1\":%d,"
 		"\"orig_height1\":%d,"
 		"\"width1\":%d,"
 		"\"height1\":%d,"
+		"\"thumb_width1\":%d,"
+		"\"thumb_height1\":%d,"
 		"\"snapshot1\":\"%s\","
 		"\"thumbnail1\":\"%s\""
 		"}",
-		m_sUser,
 		sizes[0].cx,
 		sizes[0].cy,
 		snaps[0]->GetWidth(),
 		snaps[0]->GetHeight(),
+		thumbs[0]->GetWidth(),
+		thumbs[0]->GetHeight(),
 		encodedPng1,
 		encodedPng2);
 

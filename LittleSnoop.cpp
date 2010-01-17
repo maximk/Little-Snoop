@@ -164,11 +164,11 @@ void CLittleSnoopApp::OnPostCapture()
 
 	if (n > 0)
 	{
-		CLSID clsid;
-		CAssistant::GetEncoderClsid(L"image/png", &clsid);
-		snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
+		//CLSID clsid;
+		//CAssistant::GetEncoderClsid(L"image/png", &clsid);
+		//snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
 
-		//m_pAssistant->postScreenshot(snapshots, thumbnails, sizes, 1);
+		m_pAssistant->postScreenshot(snapshots, thumbnails, sizes, 1);
 	}
 
 	for (int i = 0; i < n; i++)
