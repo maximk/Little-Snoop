@@ -186,7 +186,7 @@ BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], 
 	CHttpConnection *connection =
 		session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
 	CHttpFile *file =
-		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, m_sUser);
+		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "little-snoop/" + m_sUser);
 
 	// when:
 	//
