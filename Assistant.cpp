@@ -179,14 +179,14 @@ int CAssistant::captureScreen(Image *snaps[], Image *thumbs[], CSize sizes[], in
 
 BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], int count)
 {
-	CTime now = CTime::GetCurrentTime();
-	int unix_time = (int)now.GetTime();
+	//CTime now = CTime::GetCurrentTime();
+	//int unix_time = (int)now.GetTime();
 
 	CInternetSession *session = new CInternetSession();
 	CHttpConnection *connection =
 		session->GetHttpConnection(m_sSnoopOnMeHost, (INTERNET_PORT)m_nSnoopOnMePort);
 	CHttpFile *file =
-		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "little-snoop/" + m_sUser);
+		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, "_littlesnoop/" + m_sUser);
 
 	// when:
 	//
@@ -215,7 +215,7 @@ BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], 
 
 	CString doc;
 	doc.Format("{"
-		"\"when\":%d,"
+		//"\"when\":%d,"
 		"\"orig_width1\":%d,"
 		"\"orig_height1\":%d,"
 		"\"width1\":%d,"
@@ -225,7 +225,7 @@ BOOL CAssistant::postScreenshot(Image *snaps[], Image *thumbs[], CSize sizes[], 
 		"\"snapshot1\":\"%s\","
 		"\"thumbnail1\":\"%s\""
 		"}",
-		unix_time,
+		//unix_time,
 		sizes[0].cx,
 		sizes[0].cy,
 		snaps[0]->GetWidth(),
