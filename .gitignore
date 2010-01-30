@@ -6,3 +6,7 @@ VTune
 *.aps
 *.ncb
 
+*.wixobj
+*.wixpdb
+*.msi
+
