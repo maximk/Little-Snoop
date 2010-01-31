@@ -17,7 +17,7 @@
         <Media Id="1" Cabinet="LittleSnoop.cab" EmbedCab="yes" /> 
 
 		<Property Id="LITTLE_SNOOP_START_VIA_REGISTRY">1</Property>
-		<Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Little Snoop" />
+
 		<Directory Id='TARGETDIR' Name='SourceDir'>
 			<Directory Id='ProgramFilesFolder' Name='PFiles'>
 				<Directory Id='INSTALLDIR' Name='Little Snoop' />
@@ -46,8 +46,17 @@
 			<ComponentRef Id='LittleSnoopAutostart' />
 		</Feature>
 		
+		<WixVariable Id="WixUILicenseRtf" Value="install/License.rtf" />
+		<WixVariable Id="WixUIBannerBmp" Value="install/top_banner.bmp" />
+		<WixVariable Id="WixUIDialogBmp" Value="install/background.bmp" />
+		
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+		<Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="After the first launch Little Snoop will display a dialog box to help you create an account with Snoop on.me or connect to the existing account." />
+		<Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+		<Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Little Snoop" />
+
 		<UI>
-			<UIRef Id="WixUI_Minimal" />
+			<UIRef Id="WixUI_InstallDir" />
 			<Publish Dialog="ExitDialog"
 				Control="Finish" 
 				Event="DoAction" 
@@ -63,6 +72,6 @@
 		<CustomAction Id="LaunchApplication"
 			BinaryKey="WixCA"
 			DllEntry="WixShellExec"
-			Impersonate="yes" />		
+			Impersonate="yes" />
 	</Product>
 </Wix>
