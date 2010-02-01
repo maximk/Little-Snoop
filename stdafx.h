@@ -22,9 +22,9 @@
 #define _WIN32_WINDOWS 0x0500 // Change this to the appropriate value to target Windows Me or later.
 #endif
 
-//#ifndef _WIN32_IE			// Allow use of features specific to IE 4.0 or later.
-//#define _WIN32_IE 0x0400	// Change this to the appropriate value to target IE 5.0 or later.
-//#endif
+#ifndef _WIN32_IE			// Allow use of features specific to IE 4.0 or later.
+#define _WIN32_IE 0x0501	// Change this to the appropriate value to target IE 5.0 or later.
+#endif
 
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit
 
@@ -34,14 +34,18 @@
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 
-//MK
-#include <afxcoll.h>
-#include <afxinet.h>
-#include <afxmt.h>          // multithreading primitives
-
-#include <strsafe.h>
-#include <gdiplus.h>
-//MK
+#include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
+#ifndef _AFX_NO_AFXCMN_SUPPORT
+#include <afxcmn.h>			// MFC support for Windows Common Controls
+#endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxsock.h>		// MFC socket extensions
+#include <afxdlgs.h>
+
+//MK
+#include <shellapi.h>
+#include <strsafe.h>
 #include <afx.h>
+#include <afxmt.h>
+#include <afxinet.h>
+//MK

@@ -9,11 +9,7 @@
 
 #include "resource.h"		// main symbols
 
-#include "Assistant.h"
-
-// Maximum number of physical screens
-#define MAX_SCREENS 8
-
+#include "SnoopOptions.h"
 
 // CLittleSnoopApp:
 // See LittleSnoop.cpp for the implementation of this class
@@ -25,27 +21,32 @@ public:
 	CLittleSnoopApp();
 
 // Overrides
-public:
+	public:
 	virtual BOOL InitInstance();
-    virtual int ExitInstance();
+	virtual int ExitInstance();
 
 // Implementation
-    BOOL setupTaskbarIcon(HWND hWnd, HICON hIcon);
-    BOOL removeTaskbarIcon(HWND hWnd);
-
-// Commands
-	afx_msg void OnStartTimer();
-	afx_msg void OnStopTimer();
-	afx_msg void OnTimer(UINT nIDEvent);
-	afx_msg void OnPostCapture();
+	//afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnEnable();
 	afx_msg void OnSettings();
 	afx_msg void OnExit();
+	afx_msg void OnCapturePost();
+	afx_msg void OnRegisterNew();
+
+	afx_msg void OnUpdateEnableUI(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateSettingsUI(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateExitUI(CCmdUI *pCmdUI);
+
 	DECLARE_MESSAGE_MAP()
 
 private:
 	ULONG_PTR m_lGdiplusToken;
-	UINT_PTR m_nTimerId;
-	CAssistant *m_pAssistant;
+
+	CMutex *m_pSingleInstanceMutex;
+
+private:
+	BOOL setupTrayIcon();
+	BOOL removeTrayIcon();
 };
 
 extern CLittleSnoopApp theApp;

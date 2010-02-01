@@ -3,36 +3,40 @@
 
 #include "stdafx.h"
 #include "LittleSnoop.h"
+#include "LittleSnoopDlg.h"
+#include "SnoopOptions.h"
+#include "DummyFrame.h"
+#include "SettingsPage1.h"
+#include "SettingsPage2.h"
 
-#include "IconHookFrame.h"
+#include "ScreenSnapper.h"
+#include "LittlePoster.h"
 
-// remove -- needed for temp code, call to rand()
-#include <stdlib.h>
+#include "gdiplus.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-using namespace Gdiplus;
-
-CString g_sKey = _T("LitteSnoop");
-CMutex *g_pSingleInstanceMutex = NULL;
-
 // CLittleSnoopApp
 
 BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
-	ON_COMMAND(IDM_STARTTIMER, OnStartTimer)
-	ON_COMMAND(IDM_STOPTIMER, OnStopTimer)
-	ON_COMMAND(IDM_POSTCAPTURE, OnPostCapture)
+	ON_COMMAND(IDM_ENABLE, OnEnable)
+	ON_UPDATE_COMMAND_UI(IDM_ENABLE, OnUpdateEnableUI)
 	ON_COMMAND(IDM_SETTINGS, OnSettings)
+	ON_UPDATE_COMMAND_UI(IDM_SETTINGS, OnUpdateSettingsUI)
 	ON_COMMAND(IDM_EXIT, OnExit)
+	ON_UPDATE_COMMAND_UI(IDM_EXIT, OnUpdateExitUI)
+
+	ON_COMMAND(IDM_CAPTUREPOST, OnCapturePost)
+	ON_COMMAND(IDM_REGISTERNEW, OnRegisterNew)
 END_MESSAGE_MAP()
 
 
 // CLittleSnoopApp construction
 
 CLittleSnoopApp::CLittleSnoopApp()
-: m_nTimerId(0)
+: m_pSingleInstanceMutex(NULL)
 {
 	// TODO: add construction code here,
 	// Place all significant initialization in InitInstance
@@ -48,10 +52,15 @@ CLittleSnoopApp theApp;
 
 BOOL CLittleSnoopApp::InitInstance()
 {
+	// InitCommonControls() is required on Windows XP if an application
+	// manifest specifies use of ComCtl32.dll version 6 or later to enable
+	// visual styles.  Otherwise, any window creation will fail.
+	// InitCommonControls();
+
 	CWinApp::InitInstance();
 
-	GdiplusStartupInput input;
-	GdiplusStartup(&m_lGdiplusToken, &input, NULL);
+	Gdiplus::GdiplusStartupInput input;
+	Gdiplus::GdiplusStartup(&m_lGdiplusToken, &input, NULL);
 
 	if (!AfxSocketInit())
 	{
@@ -68,35 +77,38 @@ BOOL CLittleSnoopApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Snoop on.me"));
 
-    // verify that single instance is running
-    CString name = GetProfileString(g_sKey,
-        _T("MutexName"), _T("SnoopOnMe5"));
-    g_pSingleInstanceMutex = new CMutex(FALSE, name);
-    if (GetLastError() == ERROR_ALREADY_EXISTS)
-    {
-        AfxMessageBox(IDS_EALREADYRUNNING);
-        return FALSE;
-    }
+	// Little Snoop does not show any window except a few dialogs
+	// when requested. However MFC requires that m_pMainWnd must
+	// point to some window. Thus we create a CDummyFrame instance
+	// for this. The additional benefit is that m_pMainWnd provides
+	// a message map needed to route taskbar icon and timer events.
 
-    // setup hidden window to hook in tray icon
-    CIconHookFrame *pHook = new CIconHookFrame;
-	if (!pHook)
+	CRuntimeClass* pRuntimeClass = RUNTIME_CLASS(CDummyFrame);
+	CDummyFrame *dummy = (CDummyFrame *)pRuntimeClass->CreateObject();
+	if (!dummy->Create(NULL, NULL, 0, CRect(10, 10, 100, 100)))
 		return FALSE;
-	m_pMainWnd = pHook;
-	// create the hook window
-    if(!pHook->Create(NULL, NULL, 0, CRect(10, 10, 100, 100)))
-        return FALSE;
+	m_pMainWnd = dummy;
 
-    //pHook->ShowWindow(SW_SHOWNORMAL);
-    //pHook->UpdateWindow();
+	// For testing purposes the dummy window may be made visible
+    //m_pMainWnd->ShowWindow(SW_SHOWNORMAL);
+    //m_pMainWnd->UpdateWindow();
 
-    // setup tray icon
-    HICON hIcon = LoadIcon(IDI_TRAYICON);
-    ASSERT(setupTaskbarIcon(m_pMainWnd->GetSafeHwnd(), hIcon));
+	// Insure only one instance of Little Snoop is running
+	// Try to create a named mutex. If unsuccessful it means
+	// that Little Snoop is already running
+	m_pSingleInstanceMutex = new CMutex(FALSE, _T("SnoopOnMeLitteSnoop"));
+	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		AfxMessageBox(IDS_EALREADYRUNNING);
+		return FALSE;
+	}
 
-	// create the assistant
-	m_pAssistant = new CAssistant();
-	m_pAssistant->loadOptions();
+	// Create options object passed around to place it is needed
+	// Load option values from the registry
+	CSnoopOptions::load();
+
+	// Set up the Little Snoop tray icon
+    ASSERT(setupTrayIcon());
 
 	// start the application's message pump
     return TRUE;
@@ -104,25 +116,24 @@ BOOL CLittleSnoopApp::InitInstance()
 
 int CLittleSnoopApp::ExitInstance()
 {
-	m_pAssistant->updateOptions();
-	delete m_pAssistant;
+	// Delete a named mutex used to check that only one instance
+	// of Little Snoop is running
+	delete m_pSingleInstanceMutex;
 
-    delete g_pSingleInstanceMutex;
+	Gdiplus::GdiplusShutdown(m_lGdiplusToken);
 
-	GdiplusShutdown(m_lGdiplusToken);
-
-    return CWinApp::ExitInstance();
+	return 0;	//success
 }
 
-BOOL CLittleSnoopApp::setupTaskbarIcon(HWND hWnd, HICON hIcon)
+BOOL CLittleSnoopApp::setupTrayIcon()
 {
 	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof(nid);
-	nid.hWnd = hWnd;
+	nid.hWnd = m_pMainWnd->GetSafeHwnd();
 	nid.uID = 0;
 	nid.uFlags = NIF_MESSAGE | NIF_TIP | NIF_ICON;
 	nid.uCallbackMessage = WM_USER_NOTIFYICON;
-	nid.hIcon = hIcon;
+	nid.hIcon = LoadIcon(IDI_LITTLESNOOP);
     
     CString tip;
     if (tip.LoadString(IDS_ICONTIP))
@@ -134,57 +145,148 @@ BOOL CLittleSnoopApp::setupTaskbarIcon(HWND hWnd, HICON hIcon)
 	return Shell_NotifyIcon(NIM_ADD, &nid);
 }
 
-BOOL CLittleSnoopApp::removeTaskbarIcon(HWND hWnd)
+BOOL CLittleSnoopApp::removeTrayIcon()
 {
 	NOTIFYICONDATA nid;
 	nid.cbSize = sizeof(nid);
-	nid.hWnd = hWnd;
+	nid.hWnd = m_pMainWnd->GetSafeHwnd();
 	nid.uID = 0;
 
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-void CLittleSnoopApp::OnStartTimer()
+void CLittleSnoopApp::OnEnable()
 {
-	m_nTimerId = m_pMainWnd->SetTimer(1, 2000, NULL);
-}
-
-void CLittleSnoopApp::OnStopTimer()
-{
-	m_pMainWnd->KillTimer(1);
-}
-
-void CLittleSnoopApp::OnPostCapture()
-{
-	CSize sizes[MAX_SCREENS];
-	Image *snapshots[MAX_SCREENS];
-	Image *thumbnails[MAX_SCREENS];
-
-	int n = m_pAssistant->captureScreen(snapshots, thumbnails, sizes, MAX_SCREENS);
-
-	if (n > 0)
-	{
-		//CLSID clsid;
-		//CAssistant::GetEncoderClsid(L"image/png", &clsid);
-		//snapshots[0]->Save(L"\\Tmp\\TestCap2.png", &clsid, NULL);
-
-		m_pAssistant->postScreenshot(snapshots, thumbnails, sizes, 1);
-	}
-
-	for (int i = 0; i < n; i++)
-	{
-		delete snapshots[i];
-		delete thumbnails[i];
-	}
+	CSnoopOptions::m_nEnabled = !CSnoopOptions::m_nEnabled;
 }
 
 void CLittleSnoopApp::OnSettings()
 {
-	m_pAssistant->showSettingsDialog();
+	CSettingsPage2 page1;
+	CSettingsPage1 page2;
+
+	page1.m_sUserName = CSnoopOptions::m_sUser;
+	page1.m_sPassword = CSnoopOptions::m_sPassword;
+	if (CSnoopOptions::m_nSchedule == 5)
+		page2.m_nSchedule = 0;
+	else if (CSnoopOptions::m_nSchedule == 10)
+		page2.m_nSchedule = 1;
+	else
+		page2.m_nSchedule = 2;
+	page2.m_bStopTemporarily = !CSnoopOptions::m_nEnabled;
+
+	if (CSnoopOptions::m_nCapturePort != 80)
+		page1.m_sSnoopOnMeURI.Format("http://%s:%d%s",
+			CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_nCapturePort,
+			CSnoopOptions::m_sCapturePath);
+	else
+		page1.m_sSnoopOnMeURI.Format("http://%s%s",
+			CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_sCapturePath);
+
+	CPropertySheet dlg(_T("Little Snoop Settings"));
+	dlg.AddPage(&page1);
+	dlg.AddPage(&page2);
+	if (dlg.DoModal() == IDOK)
+	{
+		CSnoopOptions::m_sUser = page1.m_sUserName;
+		CSnoopOptions::m_sPassword = page1.m_sPassword;
+		if (page2.m_nSchedule == 0)
+			CSnoopOptions::m_nSchedule = 5;
+		else if (page2.m_nSchedule == 1)
+			CSnoopOptions::m_nSchedule = 10;
+		else
+			CSnoopOptions::m_nSchedule = 30;
+		CSnoopOptions::m_nEnabled = !page2.m_bStopTemporarily;
+
+		CSnoopOptions::update();
+	}
 }
 
 void CLittleSnoopApp::OnExit()
 {
-    ASSERT(removeTaskbarIcon(m_pMainWnd->GetSafeHwnd()));
-    m_pMainWnd->DestroyWindow();
+	// Get rid of the cute puppy icon in the tray
+	ASSERT(removeTrayIcon());	
+
+	// destroying a dummy window magically closes the application
+	m_pMainWnd->DestroyWindow();
 }
+
+void CLittleSnoopApp::OnCapturePost()
+{
+	if (CSnoopOptions::m_sUser == _T("") || CSnoopOptions::m_sPassword == _T(""))
+	{
+		NOTIFYICONDATA nid;
+		nid.cbSize = sizeof(nid);
+		nid.hWnd = m_pMainWnd->GetSafeHwnd();
+		nid.uID = 0;
+		nid.uFlags = NIF_INFO;
+		nid.uTimeout = 1;
+		nid.dwInfoFlags = NIIF_NONE;
+
+		CString info;
+		if (info.LoadString(IDS_NO_CREDENTIALS))
+			StringCchCopyN(nid.szInfo, sizeof(nid.szInfo),
+				info, info.GetLength());
+		else 
+			nid.szInfo[0] = (TCHAR)'\0';
+
+		CString title;
+		if (title.LoadString(IDS_NO_CREDENTIALS_TITLE))
+			StringCchCopyN(nid.szInfoTitle, sizeof(nid.szInfoTitle),
+				title, title.GetLength());
+		else 
+			nid.szInfoTitle[0] = (TCHAR)'\0';
+
+		ASSERT(Shell_NotifyIcon(NIM_MODIFY, &nid));
+	}
+	else
+	{
+		CScreenSnapper snapper;
+		CString doc = snapper.snap();
+
+		CLittlePoster poster;
+		poster.post(CLittlePoster::CAPTURE, doc, CSnoopOptions::m_sUser);
+		// return value ignored -- for now
+	}
+}
+
+void CLittleSnoopApp::OnRegisterNew()
+{
+	CLittleSnoopDlg dlg;
+	if (dlg.DoModal() == IDOK)
+	{
+		if (dlg.m_nNewUser == 0)
+		{
+			CSnoopOptions::m_sUser = dlg.m_sUser;
+			CSnoopOptions::m_sPassword = dlg.m_sPassword;
+		}
+		else
+		{
+			CSnoopOptions::m_sUser = dlg.m_sExistingUser;
+			CSnoopOptions::m_sPassword = dlg.m_sExistingPassword;
+		}
+
+		CSnoopOptions::update();
+	}
+	else
+	{
+		CSnoopOptions::m_nEnabled = 0; //
+	}
+}
+
+void CLittleSnoopApp::OnUpdateEnableUI(CCmdUI *pCmdUI)
+{
+	pCmdUI->SetCheck(CSnoopOptions::m_nEnabled);
+}
+
+void CLittleSnoopApp::OnUpdateSettingsUI(CCmdUI *pCmdUI)
+{
+}
+
+void CLittleSnoopApp::OnUpdateExitUI(CCmdUI *pCmdUI)
+{
+}
+
+//EOF
