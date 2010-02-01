@@ -26,7 +26,6 @@ public:
 	virtual int ExitInstance();
 
 // Implementation
-	//afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg void OnEnable();
 	afx_msg void OnSettings();
 	afx_msg void OnExit();

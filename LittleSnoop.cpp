@@ -28,7 +28,7 @@ BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
 	ON_COMMAND(IDM_EXIT, OnExit)
 	ON_UPDATE_COMMAND_UI(IDM_EXIT, OnUpdateExitUI)
 
-	ON_COMMAND(IDM_CAPTUREPOST, OnCapturePost)
+	ON_COMMAND(IDM_POSTCAPTURE, OnCapturePost)
 	ON_COMMAND(IDM_REGISTERNEW, OnRegisterNew)
 END_MESSAGE_MAP()
 
@@ -109,6 +109,9 @@ BOOL CLittleSnoopApp::InitInstance()
 
 	// Set up the Little Snoop tray icon
     ASSERT(setupTrayIcon());
+
+	// Start timer
+	m_pMainWnd->SetTimer(1, CSnoopOptions::m_nSchedule*60*1000, NULL);
 
 	// start the application's message pump
     return TRUE;

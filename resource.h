@@ -37,6 +37,7 @@
 #define IDM_SETTINGS                    32775
 #define IDM_EXIT                        32776
 #define ID_LITTLESNOOP_LITTLESNOOP      32777
+#define IDM_POSTCAPTURE                 32777
 #define IDM_CAPTUREPOST                 32779
 #define IDM_REGISTERNEW                 32782
 
@@ -47,6 +48,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        136
 #define _APS_NEXT_COMMAND_VALUE         32783
 #define _APS_NEXT_CONTROL_VALUE         1016
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

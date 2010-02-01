@@ -55,8 +55,8 @@ DWORD CLittlePoster::post(int nService, CString body, CString sDispPath)
 		str.Format("%d", e->m_dwError);
 		AfxFormatString1(msg, IDS_INTERNETERROR, str);
 		AfxMessageBox(msg);
-
 		status = 666;
+		e->Delete();
 	}
 
 	file->Close();

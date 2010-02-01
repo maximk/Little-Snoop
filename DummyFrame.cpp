@@ -21,16 +21,18 @@ CDummyFrame::~CDummyFrame()
 
 BEGIN_MESSAGE_MAP(CDummyFrame, CMiniFrameWnd)
 	ON_MESSAGE(WM_USER_NOTIFYICON, OnNotifyIcon)
-	//ON_WM_TIMER()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
 // CDummyFrame message handlers
 
-//void CIconHookFrame::OnTimer(UINT_PTR nTimerId)
-//{
-//	SendMessage(WM_COMMAND, IDM_POSTCAPTURE);
-//}
+void CDummyFrame::OnTimer(UINT_PTR nTimerId)
+{
+	if (CSnoopOptions::m_nEnabled)
+		SendMessage(WM_COMMAND, IDM_POSTCAPTURE);
+	SetTimer(1, CSnoopOptions::m_nSchedule*60*1000, NULL);
+}
 
 LRESULT CDummyFrame::OnNotifyIcon(WPARAM wParam, LPARAM lParam)
 {

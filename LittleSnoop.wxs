@@ -39,11 +39,22 @@
 					Value="[INSTALLDIR]LittleSnoop.exe" />					
 				<Condition>LITTLE_SNOOP_START_VIA_REGISTRY</Condition>
 			</Component>
+			
+			<!-- Reset credentials -->
+			<Component Id="LittleSnoopCredentials" Guid="{842E001E-3DEB-46df-9728-39BDCCED1000}">
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="Password"
+					Type="string"
+					Value="" />
+			</Component>
 		</DirectoryRef>
 		
 		<Feature Id='MyFeature' Title='My 1st Feature' Level='1'>
 			<ComponentRef Id='LittleSnoop.exe' />
 			<ComponentRef Id='LittleSnoopAutostart' />
+			<ComponentRef Id='LittleSnoopCredentials' />
 		</Feature>
 		
 		<WixVariable Id="WixUILicenseRtf" Value="install/License.rtf" />

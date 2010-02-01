@@ -226,6 +226,9 @@
 		<File
 			RelativePath=".\res\LittleSnoop.manifest">
 		</File>
+		<File
+			RelativePath=".\LittleSnoop.wxs">
+		</File>
 	</Files>
 	<Globals>
 		<Global

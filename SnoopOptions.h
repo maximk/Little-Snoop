@@ -10,7 +10,7 @@
 #define DEFAULT_CAPTURE_HOST	_T("ec2-67-202-57-11.compute-1.amazonaws.com")
 #define DEFAULT_CAPTURE_PORT	8000
 
-#define DEFAULT_CAPTURE_PATH	_T("/_capture")
+#define DEFAULT_CAPTURE_PATH	_T("/_littlesnoop")
 #define DEFAULT_REGISTER_PATH	_T("/_register")
 #define DEFAULT_TEST_PATH		_T("/_test")
 

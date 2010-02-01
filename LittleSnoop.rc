@@ -100,7 +100,6 @@ BEGIN
         MENUITEM "Enabled",                     IDM_ENABLE, CHECKED
         MENUITEM "Settings...",                 IDM_SETTINGS
         MENUITEM SEPARATOR
-        MENUITEM "Capture+Post",                IDM_CAPTUREPOST
         MENUITEM "Exit",                        IDM_EXIT
     END
 END

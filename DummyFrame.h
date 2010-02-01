@@ -13,7 +13,7 @@ protected:
 	virtual ~CDummyFrame();
 
 protected:
-	//afx_msg void OnTimer(UINT_PTR nTimerId);
+	afx_msg void OnTimer(UINT_PTR nTimerId);
     afx_msg LRESULT OnNotifyIcon(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()
