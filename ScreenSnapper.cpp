@@ -10,6 +10,9 @@
 
 #include "gdiplus.h"
 
+//#define ARGB_BLACK 0xff000000
+#define ARGB_BLACK 0x00000000
+
 // CScreenSnapper
 
 CScreenSnapper::CScreenSnapper()
@@ -19,6 +22,8 @@ CScreenSnapper::CScreenSnapper()
 CScreenSnapper::~CScreenSnapper()
 {
 }
+
+// CScreenSnapper member functions
 
 CSize CScreenSnapper::getShrinkSize(CSize sz)
 {
@@ -64,7 +69,27 @@ CSize CScreenSnapper::getThumbSize(CSize sz)
 		return CSize(80, 50);
 }
 
-// CScreenSnapper member functions
+BOOL bitmapIsAllBlack(Gdiplus::Bitmap *bitmap)
+{
+	// Heuristic check if bitmap is all black
+	// Check 8 random pixels
+
+	UINT w = bitmap->GetWidth();
+	UINT h = bitmap->GetHeight();
+
+	for (int n = 0; n < 8; n++)
+	{
+		INT x = w * rand() / (RAND_MAX+1);
+		INT y = h * rand() / (RAND_MAX+1);
+
+		Gdiplus::Color color;
+		bitmap->GetPixel(x, y, &color);
+		if (color.GetValue() != ARGB_BLACK)
+			return FALSE;
+	}
+
+	return TRUE;
+}
 
 struct CaptureContext
 {
@@ -99,6 +124,7 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 
 	// Create bitmaps for the current screen
 	Gdiplus::Bitmap *bmp = new Gdiplus::Bitmap(origSize.cx, origSize.cy);
+
 	// Get graphics object for the bitmap and initialize it
 	Gdiplus::Graphics *graphics = Gdiplus::Graphics::FromImage(bmp);
 
@@ -113,6 +139,13 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 	// Cleanup source and destination HDC...
 	DeleteDC(hdcSource);                    
 	graphics->ReleaseHDC(hdcDestination);
+
+	// Black monitors not included -- happens if monitor is in text mode etc
+	if (bitmapIsAllBlack(bmp))
+	{
+		delete bmp;
+		return TRUE;
+	}
 
 	CSize shrinkSize = CScreenSnapper::getShrinkSize(origSize);
 	CSize thumbSize =  CScreenSnapper::getThumbSize(origSize);
@@ -153,6 +186,9 @@ CString CScreenSnapper::snap(void)
 
 	::EnumDisplayMonitors(NULL, NULL, captureOneScreen, (LPARAM)&context);
 
+	if (context.count == 0)	// usually means that all monitors are black
+		return "";
+
 	CLSID clsid;
 	GetEncoderClsid(L"image/png", &clsid);
 
@@ -182,8 +218,13 @@ CString CScreenSnapper::snap(void)
 		screen_docs[i] = screen_doc;
 	}
 
-	ASSERT(context.count > 0);	//TODO
-	
+	// cleanup images; all information is in screen_docs now
+	for (int i = 0; i < context.count; i++)
+	{
+		delete snapshots[i];
+		delete thumbnails[i];
+	}
+
 	CString doc;
 	doc.Format("{\"password\":\"%s\",\"screens\":[%s",
 		CSnoopOptions::m_sPassword, screen_docs[0]);

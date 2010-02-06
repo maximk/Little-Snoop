@@ -249,6 +249,9 @@ void CLittleSnoopApp::OnCapturePost()
 		CScreenSnapper snapper;
 		CString doc = snapper.snap();
 
+		if (doc == "")	// all monitors are black -- nothing to post
+			return;
+		
 		CLittlePoster poster;
 		poster.post(CLittlePoster::CAPTURE, doc, CSnoopOptions::m_sUser);
 		// return value ignored -- for now

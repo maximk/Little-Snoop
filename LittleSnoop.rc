@@ -95,11 +95,12 @@ BEGIN
     POPUP "Dummy", INACTIVE
     BEGIN
         MENUITEM "Little Snoop",                ID_LITTLESNOOP_LITTLESNOOP
-        , INACTIVE
+        , GRAYED
         MENUITEM SEPARATOR
         MENUITEM "Enabled",                     IDM_ENABLE, CHECKED
         MENUITEM "Settings...",                 IDM_SETTINGS
         MENUITEM SEPARATOR
+        MENUITEM "Test Capture+Post",           ID_LITTLESNOOP_LITTLESNOOP
         MENUITEM "Exit",                        IDM_EXIT
     END
 END
