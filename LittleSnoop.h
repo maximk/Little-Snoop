@@ -26,13 +26,13 @@ public:
 	virtual int ExitInstance();
 
 // Implementation
-	afx_msg void OnEnable();
-	afx_msg void OnSettings();
 	afx_msg void OnExit();
 	afx_msg void OnCapturePost();
 	afx_msg void OnRegisterNew();
+	afx_msg void OnMySnoopOnMe();
+	afx_msg void OnSettings();
 
-	afx_msg void OnUpdateEnableUI(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateMySnoopOnMeUI(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateSettingsUI(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateExitUI(CCmdUI *pCmdUI);
 
@@ -46,6 +46,7 @@ private:
 private:
 	BOOL setupTrayIcon();
 	BOOL removeTrayIcon();
+	BOOL showNotBoundBalloon();
 };
 
 extern CLittleSnoopApp theApp;

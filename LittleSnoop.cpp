@@ -3,14 +3,10 @@
 
 #include "stdafx.h"
 #include "LittleSnoop.h"
-#include "LittleSnoopDlg.h"
 #include "SnoopOptions.h"
 #include "DummyFrame.h"
-#include "SettingsPage1.h"
-#include "SettingsPage2.h"
 
 #include "ScreenSnapper.h"
-#include "LittlePoster.h"
 
 #include "gdiplus.h"
 
@@ -21,15 +17,15 @@
 // CLittleSnoopApp
 
 BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
-	ON_COMMAND(IDM_ENABLE, OnEnable)
-	ON_UPDATE_COMMAND_UI(IDM_ENABLE, OnUpdateEnableUI)
-	ON_COMMAND(IDM_SETTINGS, OnSettings)
-	ON_UPDATE_COMMAND_UI(IDM_SETTINGS, OnUpdateSettingsUI)
 	ON_COMMAND(IDM_EXIT, OnExit)
 	ON_UPDATE_COMMAND_UI(IDM_EXIT, OnUpdateExitUI)
 
-	ON_COMMAND(IDM_POSTCAPTURE, OnCapturePost)
+	ON_COMMAND(IDM_CAPTUREPOST, OnCapturePost)
 	ON_COMMAND(IDM_REGISTERNEW, OnRegisterNew)
+	ON_COMMAND(IDM_MYSNOOPONME, OnMySnoopOnMe)
+	ON_UPDATE_COMMAND_UI(IDM_MYSNOOPONME, OnUpdateMySnoopOnMeUI)
+	ON_COMMAND(IDM_SETTINGS, OnSettings)
+	ON_UPDATE_COMMAND_UI(IDM_SETTINGS, OnUpdateSettingsUI)
 END_MESSAGE_MAP()
 
 
@@ -158,57 +154,38 @@ BOOL CLittleSnoopApp::removeTrayIcon()
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-void CLittleSnoopApp::OnEnable()
+BOOL CLittleSnoopApp::showNotBoundBalloon()
 {
-	CSnoopOptions::m_nEnabled = !CSnoopOptions::m_nEnabled;
-}
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = m_pMainWnd->GetSafeHwnd();
+	nid.uID = 0;
+	nid.uFlags = NIF_INFO;
+	nid.uTimeout = 1;
+	nid.dwInfoFlags = NIIF_NONE;
 
-void CLittleSnoopApp::OnSettings()
-{
-	CSettingsPage2 page1;
-	CSettingsPage1 page2;
+	CString info;
+	if (info.LoadString(IDS_NOT_BOUND_TEXT))
+		StringCchCopyN(nid.szInfo, sizeof(nid.szInfo),
+			info, info.GetLength());
+	else 
+		nid.szInfo[0] = (TCHAR)'\0';
 
-	page1.m_sUserName = CSnoopOptions::m_sUser;
-	page1.m_sPassword = CSnoopOptions::m_sPassword;
-	if (CSnoopOptions::m_nSchedule == 5)
-		page2.m_nSchedule = 0;
-	else if (CSnoopOptions::m_nSchedule == 10)
-		page2.m_nSchedule = 1;
-	else
-		page2.m_nSchedule = 2;
-	page2.m_bStopTemporarily = !CSnoopOptions::m_nEnabled;
+	CString title;
+	if (title.LoadString(IDS_NOT_BOUND_TITLE))
+		StringCchCopyN(nid.szInfoTitle, sizeof(nid.szInfoTitle),
+			title, title.GetLength());
+	else 
+		nid.szInfoTitle[0] = (TCHAR)'\0';
 
-	if (CSnoopOptions::m_nCapturePort != 80)
-		page1.m_sSnoopOnMeURI.Format("http://%s:%d%s",
-			CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_nCapturePort,
-			CSnoopOptions::m_sCapturePath);
-	else
-		page1.m_sSnoopOnMeURI.Format("http://%s%s",
-			CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_sCapturePath);
-
-	CPropertySheet dlg(_T("Little Snoop Settings"));
-	dlg.AddPage(&page1);
-	dlg.AddPage(&page2);
-	if (dlg.DoModal() == IDOK)
-	{
-		CSnoopOptions::m_sUser = page1.m_sUserName;
-		CSnoopOptions::m_sPassword = page1.m_sPassword;
-		if (page2.m_nSchedule == 0)
-			CSnoopOptions::m_nSchedule = 5;
-		else if (page2.m_nSchedule == 1)
-			CSnoopOptions::m_nSchedule = 10;
-		else
-			CSnoopOptions::m_nSchedule = 30;
-		CSnoopOptions::m_nEnabled = !page2.m_bStopTemporarily;
-
-		CSnoopOptions::update();
-	}
+	return Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
 void CLittleSnoopApp::OnExit()
 {
+	// dump settings to registry
+	CSnoopOptions::update();
+
 	// Get rid of the cute puppy icon in the tray
 	ASSERT(removeTrayIcon());	
 
@@ -216,82 +193,114 @@ void CLittleSnoopApp::OnExit()
 	m_pMainWnd->DestroyWindow();
 }
 
+void CLittleSnoopApp::OnUpdateExitUI(CCmdUI *pCmdUI)
+{
+}
+
 void CLittleSnoopApp::OnCapturePost()
 {
-	if (CSnoopOptions::m_sUser == _T("") || CSnoopOptions::m_sPassword == _T(""))
+	LPCTSTR accepts[] = {"application/json", NULL};
+
+	CString host = CSnoopOptions::m_sCaptureHost;
+	int port = CSnoopOptions::m_nCapturePort;
+
+	CInternetSession *session = new CInternetSession();
+	CHttpConnection *connection = session->GetHttpConnection(host, (INTERNET_PORT)port);
+
+	CHttpFile *f = connection->OpenRequest(CHttpConnection::HTTP_VERB_GET,
+		CSnoopOptions::m_sSettingsPath + _T("/") + CSnoopOptions::m_sLittleSnoopId, 0, 1, accepts);
+	f->SendRequest();
+
+	DWORD status;
+	f->QueryInfoStatusCode(status);
+
+	if (status == 404)
 	{
-		NOTIFYICONDATA nid;
-		nid.cbSize = sizeof(nid);
-		nid.hWnd = m_pMainWnd->GetSafeHwnd();
-		nid.uID = 0;
-		nid.uFlags = NIF_INFO;
-		nid.uTimeout = 1;
-		nid.dwInfoFlags = NIIF_NONE;
-
-		CString info;
-		if (info.LoadString(IDS_NO_CREDENTIALS))
-			StringCchCopyN(nid.szInfo, sizeof(nid.szInfo),
-				info, info.GetLength());
-		else 
-			nid.szInfo[0] = (TCHAR)'\0';
-
-		CString title;
-		if (title.LoadString(IDS_NO_CREDENTIALS_TITLE))
-			StringCchCopyN(nid.szInfoTitle, sizeof(nid.szInfoTitle),
-				title, title.GetLength());
-		else 
-			nid.szInfoTitle[0] = (TCHAR)'\0';
-
-		ASSERT(Shell_NotifyIcon(NIM_MODIFY, &nid));
+		f->Close();
+		showNotBoundBalloon();
 	}
 	else
 	{
-		CScreenSnapper snapper;
-		CString doc = snapper.snap();
+		CString settings;
+		f->ReadString(settings);
+		f->Close();
 
-		if (doc == "")	// all monitors are black -- nothing to post
-			return;
-		
-		CLittlePoster poster;
-		poster.post(CLittlePoster::CAPTURE, doc, CSnoopOptions::m_sUser);
-		// return value ignored -- for now
+		CSnoopOptions::parseJsonSettings(settings);
+
+		if (CSnoopOptions::m_nEnabled)
+		{
+			CScreenSnapper snapper;
+			CString doc = snapper.snap();
+
+			if (doc == "")	// all monitors are black -- nothing to post
+				return;
+
+			CString body;
+			body.Format("{\"ls_id\":\"%s\",\"screens\":%s}",
+				CSnoopOptions::m_sLittleSnoopId, doc);
+
+			CHttpFile *r = connection->OpenRequest(CHttpConnection::HTTP_VERB_POST,
+				CSnoopOptions::m_sCapturePath);
+			r->AddRequestHeaders(_T("Content-Type: application/json\r\n"));
+			r->SendRequestEx(body.GetLength());
+			r->WriteString(body);
+			r->EndRequest();
+
+			r->Close();
+		}
 	}
+
+	connection->Close();
+	session->Close();
 }
 
 void CLittleSnoopApp::OnRegisterNew()
 {
-	CLittleSnoopDlg dlg;
-	if (dlg.DoModal() == IDOK)
-	{
-		if (dlg.m_nNewUser == 0)
-		{
-			CSnoopOptions::m_sUser = dlg.m_sUser;
-			CSnoopOptions::m_sPassword = dlg.m_sPassword;
-		}
-		else
-		{
-			CSnoopOptions::m_sUser = dlg.m_sExistingUser;
-			CSnoopOptions::m_sPassword = dlg.m_sExistingPassword;
-		}
-
-		CSnoopOptions::update();
-	}
+	CString url;
+	if (CSnoopOptions::m_nCapturePort == 80)
+		url.Format("http://%s%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_sInstalledPath, CSnoopOptions::m_sLittleSnoopId);
 	else
-	{
-		CSnoopOptions::m_nEnabled = 0; //
-	}
+		url.Format("http://%s:%d%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sInstalledPath,
+			CSnoopOptions::m_sLittleSnoopId);
+
+	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
-void CLittleSnoopApp::OnUpdateEnableUI(CCmdUI *pCmdUI)
+void CLittleSnoopApp::OnMySnoopOnMe()
 {
-	pCmdUI->SetCheck(CSnoopOptions::m_nEnabled);
+	CString url;
+	if (CSnoopOptions::m_nCapturePort == 80)
+		url.Format("http://%s%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_sPortaPath, CSnoopOptions::m_sLittleSnoopId);
+	else
+		url.Format("http://%s:%d%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sPortaPath,
+			CSnoopOptions::m_sLittleSnoopId);
+
+	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+}
+
+void CLittleSnoopApp::OnUpdateMySnoopOnMeUI(CCmdUI *pCmdUI)
+{
+}
+
+void CLittleSnoopApp::OnSettings()
+{
+	CString url;
+	if (CSnoopOptions::m_nCapturePort == 80)
+		url.Format("http://%s%s?ls_id=%s&room=settings", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_sPortaPath, CSnoopOptions::m_sLittleSnoopId);
+	else
+		url.Format("http://%s:%d%s?ls_id=%s&room=settings", CSnoopOptions::m_sCaptureHost,
+			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sPortaPath,
+			CSnoopOptions::m_sLittleSnoopId);
+
+	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
 }
 
 void CLittleSnoopApp::OnUpdateSettingsUI(CCmdUI *pCmdUI)
-{
-}
-
-void CLittleSnoopApp::OnUpdateExitUI(CCmdUI *pCmdUI)
 {
 }
 

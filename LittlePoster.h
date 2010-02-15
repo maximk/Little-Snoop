@@ -14,8 +14,8 @@ public:
 	static const int REGISTER = 2;
 	static const int TEST = 3;
 
-	DWORD post(int nService, CString body, CString sDispPath = "");
-	bool testCredentials(CString sUser, CString sPassword);
+	DWORD post(CString path, CString body, CString sDispPath = "");
+	//bool testCredentials(CString sUser, CString sPassword);
 };
 
 

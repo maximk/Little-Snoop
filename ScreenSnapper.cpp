@@ -10,8 +10,7 @@
 
 #include "gdiplus.h"
 
-//#define ARGB_BLACK 0xff000000
-#define ARGB_BLACK 0x00000000
+#define ARGB_IS_BLACK(argb)		(((argb) & 0xffffff) == 0x000000)
 
 // CScreenSnapper
 
@@ -84,7 +83,7 @@ BOOL bitmapIsAllBlack(Gdiplus::Bitmap *bitmap)
 
 		Gdiplus::Color color;
 		bitmap->GetPixel(x, y, &color);
-		if (color.GetValue() != ARGB_BLACK)
+		if (!ARGB_IS_BLACK(color.GetValue()))
 			return FALSE;
 	}
 
@@ -134,7 +133,7 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 
 	// Move the bits to snapshot and thumbnail...
 	StretchBlt(hdcDestination, 0, 0, origSize.cx, origSize.cy, 
-		hdcSource, lprcMonitor->left, lprcMonitor->top, origSize.cx, origSize.cy, SRCCOPY | CAPTUREBLT);
+		hdcSource, 0, 0, origSize.cx, origSize.cy, SRCCOPY | CAPTUREBLT);
 	    
 	// Cleanup source and destination HDC...
 	DeleteDC(hdcSource);                    
@@ -226,13 +225,12 @@ CString CScreenSnapper::snap(void)
 	}
 
 	CString doc;
-	doc.Format("{\"password\":\"%s\",\"screens\":[%s",
-		CSnoopOptions::m_sPassword, screen_docs[0]);
+	doc.Format("[%s", screen_docs[0]);
 
 	for (int i = 1; i < context.count; i++)
 		doc.AppendFormat(",%s", screen_docs[i]);
 
-	doc += "]}";
+	doc += "]";
 	return doc;
 }
 

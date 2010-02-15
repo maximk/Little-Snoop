@@ -30,7 +30,7 @@ END_MESSAGE_MAP()
 void CDummyFrame::OnTimer(UINT_PTR nTimerId)
 {
 	if (CSnoopOptions::m_nEnabled)
-		SendMessage(WM_COMMAND, IDM_POSTCAPTURE);
+		SendMessage(WM_COMMAND, IDM_CAPTUREPOST);
 	SetTimer(1, CSnoopOptions::m_nSchedule*60*1000, NULL);
 }
 
@@ -54,6 +54,10 @@ LRESULT CDummyFrame::OnNotifyIcon(WPARAM wParam, LPARAM lParam)
         popup->TrackPopupMenuEx(TPM_RIGHTALIGN,
 	        pt.x, pt.y, AfxGetMainWnd(), NULL);
     }
+	else if (lParam == WM_LBUTTONDBLCLK)
+	{
+		SendMessage(WM_COMMAND, IDM_MYSNOOPONME);
+	}
 	else if (lParam == NIN_BALLOONUSERCLICK)
 	{
 		SendMessage(WM_COMMAND, IDM_REGISTERNEW);

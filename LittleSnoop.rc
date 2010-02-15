@@ -94,13 +94,8 @@ IDR_MENU1 MENU
 BEGIN
     POPUP "Dummy", INACTIVE
     BEGIN
-        MENUITEM "Little Snoop",                ID_LITTLESNOOP_LITTLESNOOP
-        , GRAYED
+        MENUITEM "Settings on snoopon.me",      IDM_SETTINGS
         MENUITEM SEPARATOR
-        MENUITEM "Enabled",                     IDM_ENABLE, CHECKED
-        MENUITEM "Settings...",                 IDM_SETTINGS
-        MENUITEM SEPARATOR
-        MENUITEM "Test Capture+Post",           ID_LITTLESNOOP_LITTLESNOOP
         MENUITEM "Exit",                        IDM_EXIT
     END
 END
@@ -117,83 +112,6 @@ END
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 #endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_LITTLESNOOP_DIALOG DIALOGEX 0, 0, 427, 326
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_APPWINDOW
-CAPTION "Little Snoop"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    CONTROL         "I am a new user. Please register me with Snoop on.me:",
-                    IDC_RADIO_NEWUSER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,
-                    154,16,193,10
-    EDITTEXT        IDC_EDIT_USER,189,44,97,12,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_EMAIL,189,73,163,12,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_PASSWORD,189,104,97,12,ES_PASSWORD | 
-                    ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_PASSWORD2,189,134,97,12,ES_PASSWORD | 
-                    ES_AUTOHSCROLL
-    CONTROL         "I agree to comply to Terms of Use of Snoop on.me service",
-                    IDC_CHECK_AGREETERMS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,189,156,202,10
-    PUSHBUTTON      "Register",IDC_BUTTON_REGISTER,236,174,50,16
-    PUSHBUTTON      "Cancel",IDCANCEL,368,303,50,16
-    CONTROL         "I already have an account with Snoop on.me:",
-                    IDC_RADIO_EXISTING,"Button",BS_AUTORADIOBUTTON,154,224,
-                    162,10
-    EDITTEXT        IDC_EDIT_EXISTINGUSER,189,251,97,12,ES_AUTOHSCROLL | 
-                    WS_DISABLED
-    EDITTEXT        IDC_EDIT_EXISTINGPASSWORD,189,280,97,12,ES_PASSWORD | 
-                    ES_AUTOHSCROLL | WS_DISABLED
-    PUSHBUTTON      "Test",IDC_BUTTON_TEST,236,303,50,16,WS_DISABLED
-    LTEXT           "User Name:",IDC_STATIC,189,33,38,8
-    LTEXT           "E-mail (no activation required):",IDC_STATIC,189,63,100,
-                    8
-    LTEXT           "Password:",IDC_STATIC,189,94,38,8
-    LTEXT           "Please retype your password:",IDC_STATIC,189,124,97,8
-    LTEXT           "User Name:",IDC_STATIC,189,240,38,8
-    LTEXT           "Password:",IDC_STATIC,189,270,38,8
-    CONTROL         135,IDC_STATIC,"Static",SS_BITMAP,18,26,167,192
-END
-
-IDD_PROPPAGE1 DIALOGEX 0, 0, 226, 126
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Schedule"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
-BEGIN
-    GROUPBOX        "Schedule",IDC_STATIC,7,7,179,69
-    CONTROL         "5 min",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
-                    WS_GROUP,137,21,33,10
-    CONTROL         "10 min",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,137,38,
-                    37,10
-    CONTROL         "30 min",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON,137,55,
-                    37,10
-    LTEXT           "Screen snapshots are taken every:",IDC_STATIC,18,23,114,
-                    8
-    CONTROL         "Temporarily stop taking screen snapshots",IDC_CHECK1,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,81,149,10
-END
-
-IDD_PROPPAGE2 DIALOGEX 0, 0, 265, 127
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Snoop on.me"
-FONT 8, "MS Shell Dlg", 0, 0, 0x0
-BEGIN
-    LTEXT           "User Name:",IDC_STATIC,7,18,38,8
-    EDITTEXT        IDC_EDIT1,7,29,100,14,ES_AUTOHSCROLL
-    LTEXT           "Password:",IDC_STATIC,119,18,34,8
-    LTEXT           "Snoop on.me Capture URI:",IDC_STATIC,7,74,88,8
-    EDITTEXT        IDC_EDIT3,7,85,212,14,ES_AUTOHSCROLL | WS_DISABLED
-    EDITTEXT        IDC_EDIT2,119,29,100,14,ES_PASSWORD | ES_AUTOHSCROLL
-    PUSHBUTTON      "Test",IDC_BUTTON1,172,51,47,17
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -236,47 +154,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_LITTLESNOOP_DIALOG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 418
-        VERTGUIDE, 154
-        VERTGUIDE, 189
-        VERTGUIDE, 286
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 319
-    END
-
-    IDD_PROPPAGE1, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 219
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 119
-    END
-
-    IDD_PROPPAGE2, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 258
-        VERTGUIDE, 219
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 120
-        HORZGUIDE, 26
-        HORZGUIDE, 43
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // String Table
 //
 
@@ -285,8 +162,8 @@ BEGIN
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
     IDS_EALREADYRUNNING     "Little Snoop is already running. Right-click a Little Snoop icon in the right-bottom corner of the screen."
     IDS_ICONTIP             "Little Snoop"
-    IDS_NO_CREDENTIALS      "Click here to provide your Snoop on.me account credentials or create a new account with Snoop on.me."
-    IDS_NO_CREDENTIALS_TITLE "No Snoop on.me Credentials"
+    IDS_NOT_BOUND_TEXT      "Click here to provide your Snoop on.me account credentials or create a new account with Snoop on.me."
+    IDS_NOT_BOUND_TITLE     "No Snoop on.me Credentials"
     IDS_INTERNETERROR       "Unable to connect to Snoop on.me server (%1)."
 END
 

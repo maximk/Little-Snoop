@@ -19,27 +19,38 @@ CLittlePoster::~CLittlePoster()
 
 // CLittlePoster member functions
 
-DWORD CLittlePoster::post(int nService, CString body, CString sDispPath)
+DWORD CLittlePoster::post(CString path, CString body)
 {
 	CString host = CSnoopOptions::m_sCaptureHost;
 	int port = CSnoopOptions::m_nCapturePort;
-	CString path;
+	LPCTSTR accepts[] = {_T("application/json"),NULL};
 	DWORD status;
-
-	if (nService == CLittlePoster::CAPTURE)
-		path = CSnoopOptions::m_sCapturePath;
-	else if (nService == CLittlePoster::REGISTER)
-		path = CSnoopOptions::m_sRegisterPath;
-	else if (nService == CLittlePoster::TEST)
-		path = CSnoopOptions::m_sTestPath;
-	else
-		return 500;
 
 	CInternetSession *session = new CInternetSession();
 	CHttpConnection *connection =
 		session->GetHttpConnection(host, (INTERNET_PORT)port);
+
+	CHttpFile *f = connection->OpenRequest(CHttpConnection::HTTP_VERB_GET,
+		m_sSettingsPath + _T("/") + m_sLittleSnoopId, 0, 1, accepts);
+	f->SendRequest();
+
+	f->QueryInfoStatusCode(&status);
+
+	if (status == 404)
+	{
+		f->Close();
+	}
+	CString settings = f->ReadString();
+	f->Close();
+
+
+
+
+	CString url = m_sSettingsPath + _T("/") + m_sLittleSnoopId;
+	CStdioFile *settings = connection->O
+
 	CHttpFile *file =
-		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, path + _T("/") + sDispPath);
+		connection->OpenRequest(CHttpConnection::HTTP_VERB_POST, path);
 
 	try {
 		file->AddRequestHeaders(_T("Content-Type: application/json\r\n"));
@@ -51,10 +62,10 @@ DWORD CLittlePoster::post(int nService, CString body, CString sDispPath)
 	}
 	catch(CInternetException *e)
 	{
-		CString str, msg;
-		str.Format("%d", e->m_dwError);
-		AfxFormatString1(msg, IDS_INTERNETERROR, str);
-		AfxMessageBox(msg);
+		//CString str, msg;
+		//str.Format("%d", e->m_dwError);
+		//AfxFormatString1(msg, IDS_INTERNETERROR, str);
+		//AfxMessageBox(msg);
 		status = 666;
 		e->Delete();
 	}
@@ -70,12 +81,12 @@ DWORD CLittlePoster::post(int nService, CString body, CString sDispPath)
 	return status;
 }
 
-bool CLittlePoster::testCredentials(CString sUser, CString sPassword)
-{
-	CString doc;
-	doc.Format("{\"password\":\"%s\"}", sPassword);
-
-	return post(CLittlePoster::TEST, doc, sUser) < 300;
-}
+//bool CLittlePoster::testCredentials(CString sUser, CString sPassword)
+//{
+//	CString doc;
+//	doc.Format("{\"password\":\"%s\"}", sPassword);
+//
+//	return post(CLittlePoster::TEST, doc, sUser) < 300;
+//}
 
 //EOF
