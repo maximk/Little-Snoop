@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="LittleSnoop2"
+	Name="LittleSnoop"
 	ProjectGUID="{988BFD4E-776B-4CF5-AB76-CDFEA0126DE4}"
 	Keyword="Win32Proj">
 	<Platforms>
@@ -33,7 +33,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Rpcrt4.lib FreeImage.lib Ws2_32.lib"
-				OutputFile="$(OutDir)/LittleSnoop2.exe"
+				OutputFile="$(OutDir)/LittleSnoop.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="FreeImage"
 				DelayLoadDLLs="FreeImage.dll"
@@ -121,7 +121,7 @@
 				RelativePath=".\Base64.cpp">
 			</File>
 			<File
-				RelativePath=".\LittleSnoop2.cpp">
+				RelativePath=".\LittleSnoop.cpp">
 			</File>
 			<File
 				RelativePath=".\Options.cpp">
@@ -170,10 +170,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
-				RelativePath=".\LittleSnoop2.ico">
+				RelativePath=".\LittleSnoop.ico">
 			</File>
 			<File
-				RelativePath=".\LittleSnoop2.rc">
+				RelativePath=".\LittleSnoop.rc">
 			</File>
 			<File
 				RelativePath=".\small.ico">

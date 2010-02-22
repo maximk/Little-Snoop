@@ -13,7 +13,7 @@
 #define IDM_MYSNOOPONME                 110
 #define IDC_MENU1                       111
 #define Dummy                           32771
-#define IDM_TEST                        32772
+#define IDM_POST                        32772
 #define IDM_SETTINGS                    32774
 
 // Next default values for new objects

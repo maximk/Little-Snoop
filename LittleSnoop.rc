@@ -30,7 +30,7 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_LITTLESNOOP         ICON                    "LittleSnoop2.ico"
+IDI_LITTLESNOOP         ICON                    "LittleSnoop.ico"
 IDI_SMALL               ICON                    "small.ico"
 
 #ifdef APSTUDIO_INVOKED
@@ -70,7 +70,7 @@ STRINGTABLE
 BEGIN
     IDS_APP_TITLE           "Little Snoop"
     IDS_ICONTIP             "Little Snoop"
-    IDC_LITTLESNOOP2        "LITTLESNOOP"
+    IDC_LITTLESNOOP         "LITTLESNOOP"
 END
 
 #endif    // Russian resources

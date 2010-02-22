@@ -26,6 +26,7 @@ LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 BOOL SetupTrayIcon();
 BOOL RemoveTrayIcon();
 HINSTANCE GotoSnoopOnMe();
+HINSTANCE GotoSnoopOnMeSettings();
 
 int SplitResponse(char *buf, int nread, int *nleft);
 
@@ -138,8 +139,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_hIconPopup = GetSubMenu(dummy, 0);
 	_ASSERT(g_hIconPopup != NULL);
 
-   //ShowWindow(hwndMain, nCmdShow);
-   //UpdateWindow(hwndMain);
+   ShowWindow(hwndMain, SW_HIDE);
+   UpdateWindow(hwndMain);
 
    SetRegistryKey(_T("Snoop on.me"));
    LoadOptions();
@@ -165,6 +166,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message) 
 	{
+	case WM_CREATE:
+		SetTimer(hWnd, 1, 5*60*1000, NULL);
+		break;
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam); 
 		wmEvent = HIWORD(wParam); 
@@ -177,7 +181,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_MYSNOOPONME:
 			GotoSnoopOnMe();
 			break;
-		case IDM_TEST:
+		case IDM_SETTINGS:
+			GotoSnoopOnMeSettings();
+			break;
+		case IDM_POST:
 		{
 			UpdateOptionsPostScreens();
 			break;
@@ -218,6 +225,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		break;
 	}
+	case WM_TIMER:
+		SendMessage(hWnd, WM_COMMAND, IDM_POST, 0);
+		SetTimer(hWnd, 1, g_nSchedule*60*1000, NULL);
+		break;
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -255,6 +266,19 @@ HINSTANCE GotoSnoopOnMe()
 			g_szCaptureHost, g_szPortaPath, g_szLittleSnoopId);
 	else
 		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s:%d%s?ls_id=%s"),
+			g_szCaptureHost, g_nCapturePort, g_szPortaPath, g_szLittleSnoopId);
+
+	return ShellExecute(NULL, "open", szUrl, NULL, NULL, SW_SHOWNORMAL);
+}
+
+HINSTANCE GotoSnoopOnMeSettings()
+{
+	TCHAR szUrl[256];
+	if (g_nCapturePort == 80)
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s%s?ls_id=%s&room=settings"),
+			g_szCaptureHost, g_szPortaPath, g_szLittleSnoopId);
+	else
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s:%d%s?ls_id=%s&room=settings"),
 			g_szCaptureHost, g_nCapturePort, g_szPortaPath, g_szLittleSnoopId);
 
 	return ShellExecute(NULL, "open", szUrl, NULL, NULL, SW_SHOWNORMAL);
