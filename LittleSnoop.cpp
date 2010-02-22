@@ -34,7 +34,7 @@ HINSTANCE GotoSnoopOnMeSettings();
 int SplitResponse(char *buf, int nread, int *nleft);
 
 BOOL UpdateOptionsPostScreens();
-BOOL UpdateOptionsFromProfile();
+BOOL UpdateOptionsFromProfile(SOCKET sock);
 BOOL PostScreensAsJson(SOCKET sock, LPCTSTR json);
 
 
@@ -104,12 +104,12 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, (LPCTSTR)IDI_LITTLESNOOP);
+	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_LITTLESNOOP));
 	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
 	wcex.lpszMenuName	= NULL;		//(LPCTSTR)IDC_LITTLESNOOP;
 	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassEx(&wcex);
 }
@@ -129,6 +129,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	HMENU dummy;
 	
 	hInst = hInstance; // Store instance handle in our global variable
+
+	if(FindWindow(NULL, szTitle) != NULL)
+	{
+		MessageBox(NULL,
+			_T("Little Snoop is already running. Look for a doggy icon in the right bottom corner."),
+			_T("Little Snoop"),
+			MB_OK);
+		return FALSE;
+	}
 
 	hwndMain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
@@ -213,10 +222,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		if (lParam == WM_RBUTTONDOWN)
 		{
-			_ASSERT(GetCursorPos(&pt));
-			_ASSERT(SetForegroundWindow(hwndMain));
+			GetCursorPos(&pt);
+			SetForegroundWindow(hwndMain);
 
-			_ASSERT(TrackPopupMenuEx(g_hIconPopup, TPM_RIGHTALIGN, pt.x, pt.y, hwndMain, NULL));
+			TrackPopupMenuEx(g_hIconPopup, TPM_RIGHTALIGN, pt.x, pt.y, hwndMain, NULL);
 		}
 		else if (lParam == WM_LBUTTONDBLCLK)
 		{

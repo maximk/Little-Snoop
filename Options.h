@@ -19,7 +19,7 @@ extern int g_nSchedule;
 
 void SetRegistryKey(LPCTSTR szRegistryKey);
 void LoadOptions();
-void UpdateOptions();
+void SaveOptions();
 void ParseOptionsFromJson(const char *json);
 
 //EOF

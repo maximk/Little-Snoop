@@ -71,22 +71,29 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="1"
+				FavorSizeOrSpeed="2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="4"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="3"
+				CompileAs="1"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/LittleSnoop2.exe"
+				AdditionalDependencies="FreeImage.lib Rpcrt4.lib Ws2_32.lib"
+				OutputFile="$(OutDir)/LittleSnoop.exe"
 				LinkIncremental="1"
-				GenerateDebugInformation="TRUE"
+				AdditionalLibraryDirectories="FreeImage"
+				DelayLoadDLLs="FreeImage.dll"
+				GenerateDebugInformation="FALSE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				SupportUnloadOfDelayLoadedDLL="TRUE"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

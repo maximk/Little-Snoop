@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+	 xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
 	<Product Id='{DC4CC7D0-A22C-4404-8848-C1E3C9ABB98F}'
 		Name='Little Snoop'
@@ -22,11 +23,15 @@
 			<Directory Id='ProgramFilesFolder' Name='PFiles'>
 				<Directory Id='INSTALLDIR' Name='Little Snoop' />
 			</Directory>
+			
+			<Directory Id="ProgramMenuFolder">
+				<Directory Id="ApplicationProgramsFolder" Name="Snoop on.me"/>
+			</Directory>
 		</Directory>
 		
 		<DirectoryRef Id="INSTALLDIR">
 			<Component Id='LittleSnoop.exe' Guid='{F23C20A3-B1B6-4758-BC8A-F520074DB7C3}'>
-				<File Id='LittleSnoop.exe' Source='Debug/LittleSnoop.exe' KeyPath="yes" />
+				<File Id='LittleSnoop.exe' Source='Release/LittleSnoop.exe' KeyPath="yes" />
 			</Component>
 			
 			<Component Id='FreeImage.dll' Guid='{A83C286D-492B-43b3-AF4B-D6ADEED5AF26}'>
@@ -38,7 +43,7 @@
 			</Component>
 
 			<!-- Auto-start via Registry -->
-			<Component Id="LittleSnoopAutostart" Guid="{0FA87D77-83E3-4d0d-B644-2932398B1929}">
+			<Component Id="Autostart" Guid="{0FA87D77-83E3-4d0d-B644-2932398B1929}">
 				<RegistryValue Root="HKCU"
 					Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
 					Action="write"
@@ -48,14 +53,73 @@
 				<Condition>LITTLE_SNOOP_START_VIA_REGISTRY</Condition>
 			</Component>
 			
-			<!-- Reset Little Snoop Id -->
-			<Component Id="LittleSnoopCredentials" Guid="{842E001E-3DEB-46df-9728-39BDCCED1000}">
+			<Component Id="RegistrySettings" Guid="{3E371991-361E-4002-895E-3CEF203DFA56}">
 				<RegistryValue Root="HKCU"
 					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
 					Action="write"
 					Name="LsId"
 					Type="string"
 					Value="" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="CaptureHost"
+					Type="string"
+					Value="snoopon.me" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="CapturePort"
+					Type="integer"
+					Value="80" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="CapturePath"
+					Type="string"
+					Value="/captures" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="SettingsPath"
+					Type="string"
+					Value="/settings" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="InstalledPath"
+					Type="string"
+					Value="/installed" />
+				<RegistryValue Root="HKCU"
+					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
+					Action="write"
+					Name="PortaPath"
+					Type="string"
+					Value="/porta" />
+			</Component>
+
+		</DirectoryRef>
+
+		<DirectoryRef Id="ApplicationProgramsFolder">
+			<Component Id="ApplicationShortcuts" Guid="{8E452DC7-B8AA-43e5-A7B3-1F24AA5F6CD9}">
+				<Shortcut Id="ApplicationStartMenuShortcut" 
+						Name="Little Snoop"
+						Description="Little Snoop"
+						Target="[INSTALLDIR]LittleSnoop.exe"
+						WorkingDirectory="INSTALLDIR"/>
+				<!--
+				<util:InternetShortcut Id="WebsiteStartMenuShortcut"
+						Name="Go to snoopon.me"
+						Target="http://snoopon.me"
+						Type="url" />
+				-->
+				<Shortcut Id="UninstallProductShortcut"
+						Name="Uninstall Little Snoop"
+						Target="[System64Folder]msiexec.exe"
+						Arguments="/x [ProductCode]"
+						Description="Uninstalls Little Snoop" />
+				<RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+				<RegistryValue Root="HKCU" Key="Software\Snoop on.me\LittleSnoop" Name="Installed" Type="integer" Value="1" KeyPath="yes"/>
 			</Component>
 		</DirectoryRef>
 		
@@ -63,8 +127,11 @@
 			<ComponentRef Id='LittleSnoop.exe' />
 			<ComponentRef Id='FreeImage.dll' />
 			<ComponentRef Id='GotoSnoopOnMe.url' />
-			<ComponentRef Id='LittleSnoopAutostart' />
-			<ComponentRef Id='LittleSnoopCredentials' />
+						
+			<ComponentRef Id='Autostart' />
+			<ComponentRef Id='RegistrySettings' />
+
+			<ComponentRef Id='ApplicationShortcuts' />
 		</Feature>
 		
 		<WixVariable Id="WixUILicenseRtf" Value="install/License.rtf" />

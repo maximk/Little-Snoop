@@ -39,7 +39,10 @@ void LoadOptions()
 
 	GetOptionString(szSection, _T("LsId"), _T(""), g_szLittleSnoopId, MAX_OPT_STRING);
 	if (g_szLittleSnoopId[0] == 0)
+	{
 		GenerateUuid(g_szLittleSnoopId, MAX_OPT_STRING);
+		WriteOptionString(szSection, _T("LsId"), g_szLittleSnoopId);
+	}
 	GetOptionString(szSection, _T("CaptureHost"), _T("snoopon.me"), g_szCaptureHost, MAX_OPT_STRING);
 
 	g_nCapturePort = GetOptionInt(szSection, _T("CapturePort"), 80);
@@ -51,20 +54,6 @@ void LoadOptions()
 
 	g_nEnabled = 1;
 	g_nSchedule = 5;
-}
-
-void UpdateOptions()
-{
-	TCHAR *szSection = _T("General");
-	WriteOptionString(szSection, _T("LsId"), g_szLittleSnoopId);
-	WriteOptionString(szSection, _T("CaptureHost"), g_szCaptureHost);
-
-	WriteOptionInt(szSection, _T("CapturePort"), g_nCapturePort);
-
-	WriteOptionString(szSection, _T("CapturePath"), g_szCapturePath);
-	WriteOptionString(szSection, _T("SettingsPath"), g_szSettingsPath);
-	WriteOptionString(szSection, _T("InstalledPath"), g_szInstalledPath);
-	WriteOptionString(szSection, _T("PortaPath"), g_szPortaPath);
 }
 
 BOOL GetOptionString(LPCTSTR szSection, LPCTSTR szEntry, LPCTSTR szDefault, LPTSTR szBuffer, int nSize)
@@ -83,7 +72,7 @@ BOOL GetOptionString(LPCTSTR szSection, LPCTSTR szEntry, LPCTSTR szDefault, LPTS
 			{
 				_ASSERT(dwType == REG_SZ);
 				lResult = RegQueryValueEx(hSecKey, (LPTSTR)szEntry, NULL, &dwType,
-					(LPBYTE)szBuffer, &nSize);
+					(LPBYTE)szBuffer, (LPDWORD)&nSize);
 			}
 			RegCloseKey(hSecKey);
 			if (lResult == ERROR_SUCCESS)
@@ -237,7 +226,7 @@ void GenerateUuid(TCHAR *szBuffer, int nSize)
 		unsigned char *str;
 		if (UuidToString(&uuid, &str) == RPC_S_OK)
 		{
-			strncpy(szBuffer, str, nSize);
+			strncpy(szBuffer, (const char *)str, nSize);		//XXX: Unicode?
 			RpcStringFree(&str);
 		}
 	}

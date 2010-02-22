@@ -131,7 +131,7 @@ BOOL CALLBACK captureOneScreen(HMONITOR hMonitor,
 	hdcSource = CreateDC(NULL, monitorInfo.szDevice, NULL, NULL);
 	hdcDestination = CreateCompatibleDC(hdcSource);
 	hbmp = CreateCompatibleBitmap(hdcSource, origSize.cx, origSize.cy);
-	saved = SelectObject(hdcDestination, hbmp);
+	saved = (HBITMAP)SelectObject(hdcDestination, hbmp);
 
 	StretchBlt(hdcDestination, 0, 0, origSize.cx, origSize.cy, 
 		hdcSource, 0, 0, origSize.cx, origSize.cy, SRCCOPY | CAPTUREBLT);
@@ -233,7 +233,7 @@ LPCTSTR DoSnapScreensToJson()
 	FreeImage_WriteMemory("]}\0", 1, 3, json);	// null-terminate
 
 	FreeImage_AcquireMemory(json, &data, &size);
-	result = (LPCTSTR) _strdup(data);	//XXX: conversion needed for Unicode
+	result = (LPCTSTR) _strdup((const char *)data);	//XXX: conversion needed for Unicode
 	FreeImage_CloseMemory(json);
 
 	return result;
