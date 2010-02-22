@@ -179,6 +179,9 @@
 				RelativePath=".\small.ico">
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\LittleSnoop.wxs">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -25,6 +25,9 @@ LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 BOOL SetupTrayIcon();
 BOOL RemoveTrayIcon();
+BOOL ShowNotBoundBalloon();
+
+HINSTANCE GotoJustInstalled();
 HINSTANCE GotoSnoopOnMe();
 HINSTANCE GotoSnoopOnMeSettings();
 
@@ -185,10 +188,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GotoSnoopOnMeSettings();
 			break;
 		case IDM_POST:
-		{
 			UpdateOptionsPostScreens();
 			break;
-		}
+		case IDM_INSTALLED:
+			GotoJustInstalled();
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -218,10 +222,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			SendMessage(hwndMain, WM_COMMAND, IDM_MYSNOOPONME, 0);
 		}
-		//else if (lParam == NIN_BALLOONUSERCLICK)
-		//{
-		//	SendMessage(WM_COMMAND, IDM_REGISTERNEW);
-		//}
+		else if (lParam == NIN_BALLOONUSERCLICK)
+		{
+			SendMessage(hwndMain, WM_COMMAND, IDM_INSTALLED, 0);
+		}
 
 		break;
 	}
@@ -256,6 +260,35 @@ BOOL RemoveTrayIcon()
 	nid.hWnd = hwndMain;
 	nid.uID = 0;
 	return Shell_NotifyIcon(NIM_DELETE, &nid);
+}
+
+BOOL ShowNotBoundBalloon()
+{
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = hwndMain;
+	nid.uID = 0;
+	nid.uFlags = NIF_INFO;
+	nid.uTimeout = 1;
+	nid.dwInfoFlags = NIIF_NONE;
+ 
+	LoadString(hInst, IDS_NOT_BOUND_TEXT, nid.szInfo, sizeof(nid.szInfo)/sizeof(TCHAR));
+	LoadString(hInst, IDS_NOT_BOUND_TITLE, nid.szInfoTitle, sizeof(nid.szInfoTitle)/sizeof(TCHAR));
+
+	return Shell_NotifyIcon(NIM_MODIFY, &nid);
+}
+
+HINSTANCE GotoJustInstalled()
+{
+	TCHAR szUrl[256];
+	if (g_nCapturePort == 80)
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s%s?ls_id=%s"),
+			g_szCaptureHost, g_szInstalledPath, g_szLittleSnoopId);
+	else
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s:%d%s?ls_id=%s"),
+			g_szCaptureHost, g_nCapturePort, g_szInstalledPath, g_szLittleSnoopId);
+
+	return ShellExecute(NULL, "open", szUrl, NULL, NULL, SW_SHOWNORMAL);
 }
 
 HINSTANCE GotoSnoopOnMe()
@@ -354,6 +387,13 @@ BOOL UpdateOptionsFromProfile(SOCKET sock)
 
 		if (nleft == 0)
 			return FALSE;
+	}
+
+	if (strstr(buf, " 404 ") != NULL)
+	{
+		// Little Snoop not bound yet
+		ShowNotBoundBalloon();	// XXX: hookish
+		return FALSE;	// FALSE means 'stop', not 'error'
 	}
 
 	while (nleft > 0)

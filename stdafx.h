@@ -5,8 +5,9 @@
 
 #pragma once
 
-#define WINVER			0x0500
-#define _WIN32_WINNT	0x0500
+#define WINVER			0x0501
+#define _WIN32_WINNT	0x0501
+#define _WIN32_IE		0x0501
 
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
@@ -19,7 +20,7 @@
 
 // TODO: reference additional headers your program requires here
 #include <CrtDbg.h>
-#include <shellapi.h>
+#include <ShellApi.h>
 #include <Rpc.h>
 #include <stdio.h>
 #include <string.h>

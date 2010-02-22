@@ -70,6 +70,8 @@ STRINGTABLE
 BEGIN
     IDS_APP_TITLE           "Little Snoop"
     IDS_ICONTIP             "Little Snoop"
+    IDS_NOT_BOUND_TEXT      "Click here to provide your Snoop on.me account credentials or create a new account with Snoop on.me."
+    IDS_NOT_BOUND_TITLE     "No Snoop on.me Credentials"
     IDC_LITTLESNOOP         "LITTLESNOOP"
 END
 
@@ -98,8 +100,6 @@ BEGIN
         MENUITEM "Settings on snoopon.me",      IDM_SETTINGS
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       IDM_EXIT
-        MENUITEM SEPARATOR
-        MENUITEM "Test",                        32772
     END
 END
 

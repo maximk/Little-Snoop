@@ -28,6 +28,14 @@
 			<Component Id='LittleSnoop.exe' Guid='{F23C20A3-B1B6-4758-BC8A-F520074DB7C3}'>
 				<File Id='LittleSnoop.exe' Source='Debug/LittleSnoop.exe' KeyPath="yes" />
 			</Component>
+			
+			<Component Id='FreeImage.dll' Guid='{A83C286D-492B-43b3-AF4B-D6ADEED5AF26}'>
+				<File Id='FreeImage.dll' Source='FreeImage/FreeImage.dll' KeyPath="yes" />
+			</Component>
+
+			<Component Id='GotoSnoopOnMe.url' Guid='{BEF0AE4B-CD1D-4b28-AE54-F98030FF2682}'>
+				<File Id='GotoSnoopOnMe.url' Source='Go to Snoop on.me.url' KeyPath="yes" />
+			</Component>
 
 			<!-- Auto-start via Registry -->
 			<Component Id="LittleSnoopAutostart" Guid="{0FA87D77-83E3-4d0d-B644-2932398B1929}">
@@ -40,18 +48,6 @@
 				<Condition>LITTLE_SNOOP_START_VIA_REGISTRY</Condition>
 			</Component>
 			
-			<!-- Reset credentials -->
-			<!--
-			<Component Id="LittleSnoopCredentials" Guid="{842E001E-3DEB-46df-9728-39BDCCED1000}">
-				<RegistryValue Root="HKCU"
-					Key="SOFTWARE\Snoop on.me\LittleSnoop\General"
-					Action="write"
-					Name="Password"
-					Type="string"
-					Value="" />
-			</Component>
-			-->
-
 			<!-- Reset Little Snoop Id -->
 			<Component Id="LittleSnoopCredentials" Guid="{842E001E-3DEB-46df-9728-39BDCCED1000}">
 				<RegistryValue Root="HKCU"
@@ -65,6 +61,8 @@
 		
 		<Feature Id='MyFeature' Title='My 1st Feature' Level='1'>
 			<ComponentRef Id='LittleSnoop.exe' />
+			<ComponentRef Id='FreeImage.dll' />
+			<ComponentRef Id='GotoSnoopOnMe.url' />
 			<ComponentRef Id='LittleSnoopAutostart' />
 			<ComponentRef Id='LittleSnoopCredentials' />
 		</Feature>
