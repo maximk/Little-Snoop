@@ -1,87 +1,45 @@
-// Base64.cpp : implementation file
+//
+//
 //
 
 #include "stdafx.h"
-#include "LittleSnoop.h"
-#include "Base64.h"
 
+/*
+** Translation Table as described in RFC1113
+*/
+static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-// CBase64
-
-CBase64::CBase64()
+/*
+** encodeblock
+**
+** encode 3 8-bit binary bytes as 4 '6-bit' characters
+*/
+void encodeblock( unsigned char in[3], unsigned char out[4], int len )
 {
+    out[0] = cb64[ in[0] >> 2 ];
+    out[1] = cb64[ ((in[0] & 0x03) << 4) | ((in[1] & 0xf0) >> 4) ];
+    out[2] = (unsigned char) (len > 1 ? cb64[ ((in[1] & 0x0f) << 2) | ((in[2] & 0xc0) >> 6) ] : '=');
+    out[3] = (unsigned char) (len > 2 ? cb64[ in[2] & 0x3f ] : '=');
 }
 
-CBase64::~CBase64()
+/*
+** encode
+**
+** base64 encode a stream adding padding and line breaks as per spec.
+*/
+
+void Base64EncodeMemory(FIMEMORY *input, FIMEMORY *output)
 {
-}
-
-// CBase64 member functions
-
-static const char base64_chars[] = 
-             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-             "abcdefghijklmnopqrstuvwxyz"
-             "0123456789+/";
-
-CString CBase64::encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
-  CString ret;
-  int i = 0;
-  int j = 0;
-  unsigned char char_array_3[3];
-  unsigned char char_array_4[4];
-
-  while (in_len--) {
-    char_array_3[i++] = *(bytes_to_encode++);
-    if (i == 3) {
-      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-      char_array_4[3] = char_array_3[2] & 0x3f;
-
-      for(i = 0; (i <4) ; i++)
-        ret += base64_chars[char_array_4[i]];
-      i = 0;
+    while(1) {
+	    unsigned char in[3], out[4];
+		int len;
+		in[0] = in[1] = in[2] = 0;
+		len = FreeImage_ReadMemory(in, 1, 3, input);
+		if (len == 0)
+			break;
+        encodeblock( in, out, len );
+		FreeImage_WriteMemory(out, 1, 4, output);
     }
-  }
-
-  if (i)
-  {
-    for(j = i; j < 3; j++)
-      char_array_3[j] = '\0';
-
-    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
-    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
-    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
-    char_array_4[3] = char_array_3[2] & 0x3f;
-
-    for (j = 0; (j < i + 1); j++)
-      ret += base64_chars[char_array_4[j]];
-
-    while((i++ < 3))
-      ret += '=';
-
-  }
-
-  return ret;
-
-}
-
-CString CBase64::encode(IStream *stream_to_encode)
-{
-	ULARGE_INTEGER new_pos;
-	LARGE_INTEGER zero;
-	zero.QuadPart = 0;
-	stream_to_encode->Seek(zero, STREAM_SEEK_END, &new_pos);
-	DWORD size = new_pos.LowPart;
-
-	BYTE *data = new BYTE[size];
-	stream_to_encode->Seek(zero, STREAM_SEEK_SET, NULL);
-	stream_to_encode->Read(data, size, NULL);
-
-	CString encodedData =  encode(data, size);
-	delete data;
-
-	return encodedData;
 }
 
 //EOF

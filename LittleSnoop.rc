@@ -7,17 +7,19 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Neutral resources
+// Russian resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 #ifdef _WIN32
-LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 #pragma code_page(1251)
 #endif //_WIN32
 
@@ -28,26 +30,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_LITTLESNOOP         ICON                    "res\\icon1.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-IDB_BITMAP1             BITMAP                  "res\\dlg_bkg.bmp"
-#endif    // Neutral resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Russian resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
-#ifdef _WIN32
-LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
-#pragma code_page(1251)
-#endif //_WIN32
+IDI_LITTLESNOOP         ICON                    "LittleSnoop2.ico"
+IDI_SMALL               ICON                    "small.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -62,23 +46,15 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
     "\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
-    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
-    "#define _AFX_NO_OLE_RESOURCES\r\n"
-    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
-    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
     "\r\n"
-    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
-    "LANGUAGE 9, 1\r\n"
-    "#pragma code_page(1252)\r\n"
-    "#include ""res\\LittleSnoop.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
-    "#include ""afxres.rc""         // Standard components\r\n"
-    "#endif\r\n"
     "\0"
 END
 
@@ -87,17 +63,14 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
+// String Table
 //
 
-IDR_MENU1 MENU 
+STRINGTABLE 
 BEGIN
-    POPUP "Dummy", INACTIVE
-    BEGIN
-        MENUITEM "Settings on snoopon.me",      IDM_SETTINGS
-        MENUITEM SEPARATOR
-        MENUITEM "Exit",                        IDM_EXIT
-    END
+    IDS_APP_TITLE           "Little Snoop"
+    IDS_ICONTIP             "Little Snoop"
+    IDC_LITTLESNOOP2        "LITTLESNOOP"
 END
 
 #endif    // Russian resources
@@ -115,56 +88,19 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Version
+// Menu
 //
 
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x1L
- FILESUBTYPE 0x0L
+IDC_LITTLESNOOP MENU 
 BEGIN
-    BLOCK "StringFileInfo"
+    POPUP "Dummy"
     BEGIN
-        BLOCK "040904e4"
-        BEGIN
-            VALUE "CompanyName", "TODO: <Company name>"
-            VALUE "FileDescription", "TODO: <File description>"
-            VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "LittleSnoop.exe"
-            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
-            VALUE "OriginalFilename", "LittleSnoop.exe"
-            VALUE "ProductName", "TODO: <Product name>"
-            VALUE "ProductVersion", "1.0.0.1"
-        END
+        MENUITEM "Settings on snoopon.me",      IDM_SETTINGS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       IDM_EXIT
+        MENUITEM SEPARATOR
+        MENUITEM "Test",                        32772
     END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x409, 1252
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-STRINGTABLE 
-BEGIN
-    IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
-    IDS_EALREADYRUNNING     "Little Snoop is already running. Right-click a Little Snoop icon in the right-bottom corner of the screen."
-    IDS_ICONTIP             "Little Snoop"
-    IDS_NOT_BOUND_TEXT      "Click here to provide your Snoop on.me account credentials or create a new account with Snoop on.me."
-    IDS_NOT_BOUND_TITLE     "No Snoop on.me Credentials"
-    IDS_INTERNETERROR       "Unable to connect to Snoop on.me server (%1)."
 END
 
 #endif    // English (U.S.) resources
@@ -177,17 +113,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-#define _AFX_NO_SPLITTER_RESOURCES
-#define _AFX_NO_OLE_RESOURCES
-#define _AFX_NO_TRACKER_RESOURCES
-#define _AFX_NO_PROPERTY_RESOURCES
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE 9, 1
-#pragma code_page(1252)
-#include "res\LittleSnoop.rc2"  // non-Microsoft Visual C++ edited resources
-#include "afxres.rc"         // Standard components
-#endif
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED

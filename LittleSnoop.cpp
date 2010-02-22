@@ -1,307 +1,441 @@
-// LittleSnoop.cpp : Defines the class behaviors for the application.
+// LittleSnoop.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
-#include "LittleSnoop.h"
-#include "SnoopOptions.h"
-#include "DummyFrame.h"
+#include "resource.h"
 
-#include "ScreenSnapper.h"
+#include "Options.h"
+#include "SnapScreen.h"
 
-#include "gdiplus.h"
+#define MAX_LOADSTRING 100
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
+// Global Variables:
+HINSTANCE hInst;								// current instance
+TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
+TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+HWND hwndMain;									// the main (dummy) window table
 
-// CLittleSnoopApp
+HMENU g_hIconPopup;
 
-BEGIN_MESSAGE_MAP(CLittleSnoopApp, CWinApp)
-	ON_COMMAND(IDM_EXIT, OnExit)
-	ON_UPDATE_COMMAND_UI(IDM_EXIT, OnUpdateExitUI)
+// Forward declarations of functions included in this code module:
+ATOM				MyRegisterClass(HINSTANCE hInstance);
+BOOL				InitInstance(HINSTANCE, int);
+LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
-	ON_COMMAND(IDM_CAPTUREPOST, OnCapturePost)
-	ON_COMMAND(IDM_REGISTERNEW, OnRegisterNew)
-	ON_COMMAND(IDM_MYSNOOPONME, OnMySnoopOnMe)
-	ON_UPDATE_COMMAND_UI(IDM_MYSNOOPONME, OnUpdateMySnoopOnMeUI)
-	ON_COMMAND(IDM_SETTINGS, OnSettings)
-	ON_UPDATE_COMMAND_UI(IDM_SETTINGS, OnUpdateSettingsUI)
-END_MESSAGE_MAP()
+BOOL SetupTrayIcon();
+BOOL RemoveTrayIcon();
+HINSTANCE GotoSnoopOnMe();
+
+int SplitResponse(char *buf, int nread, int *nleft);
+
+BOOL UpdateOptionsPostScreens();
+BOOL UpdateOptionsFromProfile();
+BOOL PostScreensAsJson(SOCKET sock, LPCTSTR json);
 
 
-// CLittleSnoopApp construction
 
-CLittleSnoopApp::CLittleSnoopApp()
-: m_pSingleInstanceMutex(NULL)
+#define WM_USER_NOTIFYICON		(WM_USER + 100)
+
+
+
+int APIENTRY _tWinMain(HINSTANCE hInstance,
+                     HINSTANCE hPrevInstance,
+                     LPTSTR    lpCmdLine,
+                     int       nCmdShow)
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-}
+ 	// TODO: Place code here.
+	MSG msg;
+	HACCEL hAccelTable;
 
+	// Initialize global strings
+	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+	LoadString(hInstance, IDC_LITTLESNOOP, szWindowClass, MAX_LOADSTRING);
+	MyRegisterClass(hInstance);
 
-// The one and only CLittleSnoopApp object
-
-CLittleSnoopApp theApp;
-
-
-// CLittleSnoopApp initialization
-
-BOOL CLittleSnoopApp::InitInstance()
-{
-	// InitCommonControls() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
-	// InitCommonControls();
-
-	CWinApp::InitInstance();
-
-	Gdiplus::GdiplusStartupInput input;
-	Gdiplus::GdiplusStartup(&m_lGdiplusToken, &input, NULL);
-
-	if (!AfxSocketInit())
+	// Perform application initialization:
+	if (!InitInstance (hInstance, nCmdShow)) 
 	{
-		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
 		return FALSE;
 	}
 
-	// Standard initialization
-	// If you are not using these features and wish to reduce the size
-	// of your final executable, you should remove from the following
-	// the specific initialization routines you do not need
-	// Change the registry key under which our settings are stored
-	// TODO: You should modify this string to be something appropriate
-	// such as the name of your company or organization
-	SetRegistryKey(_T("Snoop on.me"));
+	hAccelTable = LoadAccelerators(hInstance, (LPCTSTR)IDC_LITTLESNOOP);
 
-	// Little Snoop does not show any window except a few dialogs
-	// when requested. However MFC requires that m_pMainWnd must
-	// point to some window. Thus we create a CDummyFrame instance
-	// for this. The additional benefit is that m_pMainWnd provides
-	// a message map needed to route taskbar icon and timer events.
-
-	CRuntimeClass* pRuntimeClass = RUNTIME_CLASS(CDummyFrame);
-	CDummyFrame *dummy = (CDummyFrame *)pRuntimeClass->CreateObject();
-	if (!dummy->Create(NULL, NULL, 0, CRect(10, 10, 100, 100)))
-		return FALSE;
-	m_pMainWnd = dummy;
-
-	// For testing purposes the dummy window may be made visible
-    //m_pMainWnd->ShowWindow(SW_SHOWNORMAL);
-    //m_pMainWnd->UpdateWindow();
-
-	// Insure only one instance of Little Snoop is running
-	// Try to create a named mutex. If unsuccessful it means
-	// that Little Snoop is already running
-	m_pSingleInstanceMutex = new CMutex(FALSE, _T("SnoopOnMeLitteSnoop"));
-	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	// Main message loop:
+	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
-		AfxMessageBox(IDS_EALREADYRUNNING);
-		return FALSE;
-	}
-
-	// Create options object passed around to place it is needed
-	// Load option values from the registry
-	CSnoopOptions::load();
-
-	// Set up the Little Snoop tray icon
-    ASSERT(setupTrayIcon());
-
-	// Start timer
-	m_pMainWnd->SetTimer(1, CSnoopOptions::m_nSchedule*60*1000, NULL);
-
-	// start the application's message pump
-    return TRUE;
-}
-
-int CLittleSnoopApp::ExitInstance()
-{
-	// Delete a named mutex used to check that only one instance
-	// of Little Snoop is running
-	delete m_pSingleInstanceMutex;
-
-	Gdiplus::GdiplusShutdown(m_lGdiplusToken);
-
-	return 0;	//success
-}
-
-BOOL CLittleSnoopApp::setupTrayIcon()
-{
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(nid);
-	nid.hWnd = m_pMainWnd->GetSafeHwnd();
-	nid.uID = 0;
-	nid.uFlags = NIF_MESSAGE | NIF_TIP | NIF_ICON;
-	nid.uCallbackMessage = WM_USER_NOTIFYICON;
-	nid.hIcon = LoadIcon(IDI_LITTLESNOOP);
-    
-    CString tip;
-    if (tip.LoadString(IDS_ICONTIP))
-		StringCchCopyN(nid.szTip, sizeof(nid.szTip),
-            tip, tip.GetLength());
-    else 
-        nid.szTip[0] = (TCHAR)'\0';
-
-	return Shell_NotifyIcon(NIM_ADD, &nid);
-}
-
-BOOL CLittleSnoopApp::removeTrayIcon()
-{
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(nid);
-	nid.hWnd = m_pMainWnd->GetSafeHwnd();
-	nid.uID = 0;
-
-	return Shell_NotifyIcon(NIM_DELETE, &nid);
-}
-
-BOOL CLittleSnoopApp::showNotBoundBalloon()
-{
-	NOTIFYICONDATA nid;
-	nid.cbSize = sizeof(nid);
-	nid.hWnd = m_pMainWnd->GetSafeHwnd();
-	nid.uID = 0;
-	nid.uFlags = NIF_INFO;
-	nid.uTimeout = 1;
-	nid.dwInfoFlags = NIIF_NONE;
-
-	CString info;
-	if (info.LoadString(IDS_NOT_BOUND_TEXT))
-		StringCchCopyN(nid.szInfo, sizeof(nid.szInfo),
-			info, info.GetLength());
-	else 
-		nid.szInfo[0] = (TCHAR)'\0';
-
-	CString title;
-	if (title.LoadString(IDS_NOT_BOUND_TITLE))
-		StringCchCopyN(nid.szInfoTitle, sizeof(nid.szInfoTitle),
-			title, title.GetLength());
-	else 
-		nid.szInfoTitle[0] = (TCHAR)'\0';
-
-	return Shell_NotifyIcon(NIM_MODIFY, &nid);
-}
-
-void CLittleSnoopApp::OnExit()
-{
-	// dump settings to registry
-	CSnoopOptions::update();
-
-	// Get rid of the cute puppy icon in the tray
-	ASSERT(removeTrayIcon());	
-
-	// destroying a dummy window magically closes the application
-	m_pMainWnd->DestroyWindow();
-}
-
-void CLittleSnoopApp::OnUpdateExitUI(CCmdUI *pCmdUI)
-{
-}
-
-void CLittleSnoopApp::OnCapturePost()
-{
-	LPCTSTR accepts[] = {"application/json", NULL};
-
-	CString host = CSnoopOptions::m_sCaptureHost;
-	int port = CSnoopOptions::m_nCapturePort;
-
-	CInternetSession *session = new CInternetSession();
-	CHttpConnection *connection = session->GetHttpConnection(host, (INTERNET_PORT)port);
-
-	CHttpFile *f = connection->OpenRequest(CHttpConnection::HTTP_VERB_GET,
-		CSnoopOptions::m_sSettingsPath + _T("/") + CSnoopOptions::m_sLittleSnoopId, 0, 1, accepts);
-	f->SendRequest();
-
-	DWORD status;
-	f->QueryInfoStatusCode(status);
-
-	if (status == 404)
-	{
-		f->Close();
-		showNotBoundBalloon();
-	}
-	else
-	{
-		CString settings;
-		f->ReadString(settings);
-		f->Close();
-
-		CSnoopOptions::parseJsonSettings(settings);
-
-		if (CSnoopOptions::m_nEnabled)
+		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg)) 
 		{
-			CScreenSnapper snapper;
-			CString doc = snapper.snap();
-
-			if (doc == "")	// all monitors are black -- nothing to post
-				return;
-
-			CString body;
-			body.Format("{\"ls_id\":\"%s\",\"screens\":%s}",
-				CSnoopOptions::m_sLittleSnoopId, doc);
-
-			CHttpFile *r = connection->OpenRequest(CHttpConnection::HTTP_VERB_POST,
-				CSnoopOptions::m_sCapturePath);
-			r->AddRequestHeaders(_T("Content-Type: application/json\r\n"));
-			r->SendRequestEx(body.GetLength());
-			r->WriteString(body);
-			r->EndRequest();
-
-			r->Close();
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 	}
 
-	connection->Close();
-	session->Close();
+	return (int) msg.wParam;
 }
 
-void CLittleSnoopApp::OnRegisterNew()
+
+
+//
+//  FUNCTION: MyRegisterClass()
+//
+//  PURPOSE: Registers the window class.
+//
+//  COMMENTS:
+//
+//    This function and its usage are only necessary if you want this code
+//    to be compatible with Win32 systems prior to the 'RegisterClassEx'
+//    function that was added to Windows 95. It is important to call this function
+//    so that the application will get 'well formed' small icons associated
+//    with it.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
 {
-	CString url;
-	if (CSnoopOptions::m_nCapturePort == 80)
-		url.Format("http://%s%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_sInstalledPath, CSnoopOptions::m_sLittleSnoopId);
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX); 
+
+	wcex.style			= CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= (WNDPROC)WndProc;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= hInstance;
+	wcex.hIcon			= LoadIcon(hInstance, (LPCTSTR)IDI_LITTLESNOOP);
+	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
+	wcex.lpszMenuName	= NULL;		//(LPCTSTR)IDC_LITTLESNOOP;
+	wcex.lpszClassName	= szWindowClass;
+	wcex.hIconSm		= LoadIcon(wcex.hInstance, (LPCTSTR)IDI_SMALL);
+
+	return RegisterClassEx(&wcex);
+}
+
+//
+//   FUNCTION: InitInstance(HANDLE, int)
+//
+//   PURPOSE: Saves instance handle and creates main window
+//
+//   COMMENTS:
+//
+//        In this function, we save the instance handle in a global variable and
+//        create and display the main program window.
+//
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+{
+	HMENU dummy;
+	
+	hInst = hInstance; // Store instance handle in our global variable
+
+	hwndMain = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+	if (!hwndMain)
+	{
+		return FALSE;
+	}
+
+   	dummy = LoadMenu(hInst, MAKEINTRESOURCE(IDC_LITTLESNOOP));
+	_ASSERT(dummy != NULL);
+	g_hIconPopup = GetSubMenu(dummy, 0);
+	_ASSERT(g_hIconPopup != NULL);
+
+   //ShowWindow(hwndMain, nCmdShow);
+   //UpdateWindow(hwndMain);
+
+   SetRegistryKey(_T("Snoop on.me"));
+   LoadOptions();
+
+   return SetupTrayIcon();
+}
+
+//
+//  FUNCTION: WndProc(HWND, unsigned, WORD, LONG)
+//
+//  PURPOSE:  Processes messages for the main window.
+//
+//  WM_COMMAND	- process the application menu
+//  WM_PAINT	- Paint the main window
+//  WM_DESTROY	- post a quit message and return
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int wmId, wmEvent;
+	PAINTSTRUCT ps;
+	HDC hdc;
+
+	switch (message) 
+	{
+	case WM_COMMAND:
+		wmId    = LOWORD(wParam); 
+		wmEvent = HIWORD(wParam); 
+		// Parse the menu selections:
+		switch (wmId)
+		{
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+		case IDM_MYSNOOPONME:
+			GotoSnoopOnMe();
+			break;
+		case IDM_TEST:
+		{
+			UpdateOptionsPostScreens();
+			break;
+		}
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+		// TODO: Add any drawing code here...
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_DESTROY:
+		RemoveTrayIcon();
+
+		PostQuitMessage(0);
+		break;
+	case WM_USER_NOTIFYICON:
+	{
+		POINT pt;
+
+		if (lParam == WM_RBUTTONDOWN)
+		{
+			_ASSERT(GetCursorPos(&pt));
+			_ASSERT(SetForegroundWindow(hwndMain));
+
+			_ASSERT(TrackPopupMenuEx(g_hIconPopup, TPM_RIGHTALIGN, pt.x, pt.y, hwndMain, NULL));
+		}
+		else if (lParam == WM_LBUTTONDBLCLK)
+		{
+			SendMessage(hwndMain, WM_COMMAND, IDM_MYSNOOPONME, 0);
+		}
+		//else if (lParam == NIN_BALLOONUSERCLICK)
+		//{
+		//	SendMessage(WM_COMMAND, IDM_REGISTERNEW);
+		//}
+
+		break;
+	}
+
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
+BOOL SetupTrayIcon()
+{
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = hwndMain;
+	nid.uID = 0;
+	nid.uFlags = NIF_MESSAGE | NIF_TIP | NIF_ICON;
+	nid.uCallbackMessage = WM_USER_NOTIFYICON;
+	nid.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(IDI_LITTLESNOOP));
+	LoadString(hInst, IDS_ICONTIP, nid.szTip, sizeof(nid.szTip)/sizeof(TCHAR));
+	return Shell_NotifyIcon(NIM_ADD, &nid);
+}
+
+BOOL RemoveTrayIcon()
+{
+	NOTIFYICONDATA nid;
+	nid.cbSize = sizeof(nid);
+	nid.hWnd = hwndMain;
+	nid.uID = 0;
+	return Shell_NotifyIcon(NIM_DELETE, &nid);
+}
+
+HINSTANCE GotoSnoopOnMe()
+{
+	TCHAR szUrl[256];
+	if (g_nCapturePort == 80)
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s%s?ls_id=%s"),
+			g_szCaptureHost, g_szPortaPath, g_szLittleSnoopId);
 	else
-		url.Format("http://%s:%d%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sInstalledPath,
-			CSnoopOptions::m_sLittleSnoopId);
+		_sntprintf(szUrl, sizeof(szUrl)/sizeof(TCHAR), _T("http://%s:%d%s?ls_id=%s"),
+			g_szCaptureHost, g_nCapturePort, g_szPortaPath, g_szLittleSnoopId);
 
-	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+	return ShellExecute(NULL, "open", szUrl, NULL, NULL, SW_SHOWNORMAL);
 }
 
-void CLittleSnoopApp::OnMySnoopOnMe()
+BOOL UpdateOptionsPostScreens()
 {
-	CString url;
-	if (CSnoopOptions::m_nCapturePort == 80)
-		url.Format("http://%s%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_sPortaPath, CSnoopOptions::m_sLittleSnoopId);
-	else
-		url.Format("http://%s:%d%s?ls_id=%s", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sPortaPath,
-			CSnoopOptions::m_sLittleSnoopId);
+	BOOL result = TRUE;
+	char buf[64];
+	WSADATA wsa;
+	struct addrinfo *ai;
+	SOCKET sock;
 
-	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	_itoa(g_nCapturePort, buf, 10);
+	if (getaddrinfo(g_szCaptureHost, buf, NULL, &ai) != 0) //XXX: Unicode dependency
+	{
+		WSACleanup();
+		return FALSE;
+	}
+
+	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	result = (connect(sock, ai->ai_addr, (int)ai->ai_addrlen) == 0);
+	if (result)
+		result = UpdateOptionsFromProfile(sock);
+	if (result && g_nEnabled)
+	{
+		LPCTSTR json = SnapScreensToJson();
+		if (json != NULL)
+		{
+			result = PostScreensAsJson(sock, json);
+			free((void *)json);
+		}
+	}
+
+	freeaddrinfo(ai);
+	closesocket(sock);
+	WSACleanup();
+
+	return result;
 }
 
-void CLittleSnoopApp::OnUpdateMySnoopOnMeUI(CCmdUI *pCmdUI)
+BOOL UpdateOptionsFromProfile(SOCKET sock)
 {
+	char buf[1024];
+	int nleft, nsent, nrecv, bodyoff;
+
+	_snprintf(buf, sizeof(buf), "GET %s/%s HTTP/1.1\r\n"
+		"Accept: application/json\r\n\r\n",
+		g_szSettingsPath, g_szLittleSnoopId);
+
+	nleft = (int)strlen(buf);
+	nsent = 0;
+	while (nleft > 0)
+	{
+		int n = send(sock, buf+nsent, nleft, 0);
+		if (n < 0)
+			return FALSE;
+		nsent += n;
+		nleft -= n;
+	}
+	
+	nleft = sizeof(buf);
+	nrecv = 0;
+	while ((bodyoff = SplitResponse(buf, nrecv, &nleft)) == -1)
+	{
+		int n = recv(sock, buf+nrecv, nleft, 0);
+		if (n < 0)
+			return FALSE;
+		nrecv += n;
+		nleft -= n;
+
+		if (nleft == 0)
+			return FALSE;
+	}
+
+	while (nleft > 0)
+	{
+		int n = recv(sock, buf+nrecv, nleft, 0);
+		if (n < 0)
+			return FALSE;
+		nrecv += n;
+		nleft -= n;
+	}
+
+	buf[nrecv] = 0;
+	ParseOptionsFromJson(buf+bodyoff);
+
+	return TRUE;
 }
 
-void CLittleSnoopApp::OnSettings()
+BOOL PostScreensAsJson(SOCKET sock, LPCTSTR json)
 {
-	CString url;
-	if (CSnoopOptions::m_nCapturePort == 80)
-		url.Format("http://%s%s?ls_id=%s&room=settings", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_sPortaPath, CSnoopOptions::m_sLittleSnoopId);
-	else
-		url.Format("http://%s:%d%s?ls_id=%s&room=settings", CSnoopOptions::m_sCaptureHost,
-			CSnoopOptions::m_nCapturePort, CSnoopOptions::m_sPortaPath,
-			CSnoopOptions::m_sLittleSnoopId);
+	char buf[1024];
+	int nleft, nsent, nrecv, bodyoff;
+	int body_len = lstrlen(json);
 
-	ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+	_snprintf(buf, sizeof(buf), "POST %s HTTP/1.1\r\n"
+		"Content-Type: application/json\r\n"
+		"Content-Length: %d\r\n\r\n",
+		g_szCapturePath, body_len);
+
+	nleft = (int)strlen(buf);
+	nsent = 0;
+	while (nleft > 0)
+	{
+		int n = send(sock, buf+nsent, nleft, 0);
+		nsent += n;
+		nleft -= n;
+	}
+
+	nleft = body_len;
+	nsent = 0;
+	while (nleft > 0)
+	{
+		int n = send(sock, json+nsent, nleft, 0);	//XXX: !Unicode
+		if (n < 0)
+			return FALSE;
+		nsent += n;
+		nleft -= n;
+	}
+	
+	nleft = sizeof(buf);
+	nrecv = 0;
+	while ((bodyoff = SplitResponse(buf, nrecv, &nleft)) == -1)
+	{
+		int n = recv(sock, buf+nrecv, nleft, 0);
+		if (n < 0)
+			return FALSE;
+		nrecv += n;
+		nleft -= n;
+
+		if (nleft == 0)
+			return FALSE;
+	}
+
+	while (nleft > 0)
+	{
+		int n = recv(sock, buf+nrecv, nleft, 0);
+		if (n < 0)
+			return FALSE;
+		nrecv += n;
+		nleft -= n;
+	}
+
+	// The response is discarded, sorry
+	return TRUE;
 }
 
-void CLittleSnoopApp::OnUpdateSettingsUI(CCmdUI *pCmdUI)
+int SplitResponse(char *buf, int nread, int *nleft)
 {
+	int i;
+
+	// detect the boundary between headers and body
+	// extract Content-Length
+	// calculate how many bytes of body are left to read
+
+	for (i = 0; i <= nread-4; i++)
+	{
+		if (strncmp(buf+i, "\r\n\r\n", 4) == 0)
+		{
+			const char *cl;
+			int bodyoff;
+			buf[i+2] = buf[i+3] = 0;
+			bodyoff = i+4;
+
+			cl = strstr(buf, "Content-Length:");
+			if (cl)
+			{
+				int len = atoi(cl+16);	//XXX
+				*nleft = len-(nread-bodyoff);
+				return bodyoff;
+			}
+			else
+				*nleft = 0;
+			return bodyoff;
+		}
+	}
+
+	return -1;
 }
 
 //EOF

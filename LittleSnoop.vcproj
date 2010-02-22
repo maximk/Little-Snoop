@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="LittleSnoop"
-	ProjectGUID="{E31A90F9-7698-4477-8BF9-CF565BE710C5}"
-	Keyword="MFCProj">
+	Name="LittleSnoop2"
+	ProjectGUID="{988BFD4E-776B-4CF5-AB76-CDFEA0126DE4}"
+	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
 			Name="Win32"/>
@@ -15,33 +15,35 @@
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="1"
-			UseOfMFC="1"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				TreatWChar_tAsBuiltInType="TRUE"
+				RuntimeLibrary="5"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				DebugInformationFormat="4"
+				CompileAs="1"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="gdiplus.lib Rpcrt4.lib"
+				AdditionalDependencies="Rpcrt4.lib FreeImage.lib Ws2_32.lib"
+				OutputFile="$(OutDir)/LittleSnoop2.exe"
 				LinkIncremental="2"
+				AdditionalLibraryDirectories="FreeImage"
+				DelayLoadDLLs="FreeImage.dll"
 				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/LittleSnoop2.pdb"
 				SubSystem="2"
+				SupportUnloadOfDelayLoadedDLL="TRUE"
 				TargetMachine="1"/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="FALSE"/>
+				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -49,10 +51,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"/>
+				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
@@ -69,14 +68,11 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="1"
-			UseOfMFC="1"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
-				MinimalRebuild="FALSE"
-				RuntimeLibrary="0"
-				TreatWChar_tAsBuiltInType="TRUE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				RuntimeLibrary="4"
 				UsePrecompiledHeader="3"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -85,6 +81,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/LittleSnoop2.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
@@ -92,9 +89,7 @@
 				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="FALSE"/>
+				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -102,10 +97,7 @@
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"/>
+				Name="VCResourceCompilerTool"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
@@ -129,16 +121,13 @@
 				RelativePath=".\Base64.cpp">
 			</File>
 			<File
-				RelativePath=".\DummyFrame.cpp">
+				RelativePath=".\LittleSnoop2.cpp">
 			</File>
 			<File
-				RelativePath=".\LittleSnoop.cpp">
+				RelativePath=".\Options.cpp">
 			</File>
 			<File
-				RelativePath=".\ScreenSnapper.cpp">
-			</File>
-			<File
-				RelativePath=".\SnoopOptions.cpp">
+				RelativePath=".\SnapScreen.cpp">
 			</File>
 			<File
 				RelativePath=".\stdafx.cpp">
@@ -164,19 +153,13 @@
 				RelativePath=".\Base64.h">
 			</File>
 			<File
-				RelativePath=".\DummyFrame.h">
-			</File>
-			<File
-				RelativePath=".\LittleSnoop.h">
+				RelativePath=".\Options.h">
 			</File>
 			<File
 				RelativePath=".\Resource.h">
 			</File>
 			<File
-				RelativePath=".\ScreenSnapper.h">
-			</File>
-			<File
-				RelativePath=".\SnoopOptions.h">
+				RelativePath=".\SnapScreen.h">
 			</File>
 			<File
 				RelativePath=".\stdafx.h">
@@ -187,28 +170,16 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
-				RelativePath=".\res\dlg_bkg.bmp">
+				RelativePath=".\LittleSnoop2.ico">
 			</File>
 			<File
-				RelativePath=".\res\icon1.ico">
+				RelativePath=".\LittleSnoop2.rc">
 			</File>
 			<File
-				RelativePath=".\LittleSnoop.rc">
-			</File>
-			<File
-				RelativePath=".\res\LittleSnoop.rc2">
+				RelativePath=".\small.ico">
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\res\LittleSnoop.manifest">
-		</File>
-		<File
-			RelativePath=".\LittleSnoop.wxs">
-		</File>
 	</Files>
 	<Globals>
-		<Global
-			Name="RESOURCE_FILE"
-			Value="LittleSnoop.rc"/>
 	</Globals>
 </VisualStudioProject>
