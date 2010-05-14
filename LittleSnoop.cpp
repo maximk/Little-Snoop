@@ -7,6 +7,8 @@
 #include "Options.h"
 #include "SnapScreen.h"
 
+#include "Wtsapi32.h"
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -16,6 +18,8 @@ TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hwndMain;									// the main (dummy) window table
 
 HMENU g_hIconPopup;
+
+int g_bConsoleConnected;						// user switching
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -151,13 +155,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	g_hIconPopup = GetSubMenu(dummy, 0);
 	_ASSERT(g_hIconPopup != NULL);
 
-   ShowWindow(hwndMain, SW_HIDE);
-   UpdateWindow(hwndMain);
+	//Start listening for WM_WM_WTSSESSION_CHANGE
+	// it is needed to stop captures when the current
+	// user is switched
+	g_bConsoleConnected = TRUE;
+	WTSRegisterSessionNotification(hwndMain, NOTIFY_FOR_THIS_SESSION);
 
-   SetRegistryKey(_T("Snoop on.me"));
-   LoadOptions();
+	ShowWindow(hwndMain, SW_HIDE);
+	UpdateWindow(hwndMain);
 
-   return SetupTrayIcon();
+	SetRegistryKey(_T("Snoop on.me"));
+	LoadOptions();
+
+	return SetupTrayIcon();
 }
 
 //
@@ -197,7 +207,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GotoSnoopOnMeSettings();
 			break;
 		case IDM_POST:
-			UpdateOptionsPostScreens();
+			if (g_bConsoleConnected)
+				UpdateOptionsPostScreens();
 			break;
 		case IDM_INSTALLED:
 			GotoJustInstalled();
@@ -213,6 +224,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_DESTROY:
 		RemoveTrayIcon();
+
+		//Stop listening for WM_WTSSESSION_CHANGE
+		WTSUnRegisterSessionNotification(hWnd);
 
 		PostQuitMessage(0);
 		break;
@@ -242,6 +256,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SendMessage(hWnd, WM_COMMAND, IDM_POST, 0);
 		SetTimer(hWnd, 1, g_nSchedule*60*1000, NULL);
 		break;
+
+	case WM_WTSSESSION_CHANGE:
+	{
+		switch( wParam )
+		{
+			case WTS_CONSOLE_CONNECT:
+				g_bConsoleConnected = TRUE;
+				break;
+			case WTS_CONSOLE_DISCONNECT:
+				g_bConsoleConnected = FALSE;
+				break;
+			default:
+				break;
+		}
+	}
 
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

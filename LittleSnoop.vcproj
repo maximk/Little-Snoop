@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Rpcrt4.lib FreeImage.lib Ws2_32.lib"
+				AdditionalDependencies="Rpcrt4.lib FreeImage.lib Ws2_32.lib WTSApi32.lib"
 				OutputFile="$(OutDir)/LittleSnoop.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="FreeImage"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="FreeImage.lib Rpcrt4.lib Ws2_32.lib"
+				AdditionalDependencies="FreeImage.lib Rpcrt4.lib Ws2_32.lib WTSApi32.lib"
 				OutputFile="$(OutDir)/LittleSnoop.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="FreeImage"
