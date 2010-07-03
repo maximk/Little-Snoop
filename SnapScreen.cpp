@@ -4,6 +4,8 @@
 
 #include "stdafx.h"
 
+#include "math.h"
+
 #include "Options.h"
 #include "Base64.h"
 
@@ -44,26 +46,45 @@ SIZE GetShrinkSize(SIZE sz)
 	const int w2 = 1280;	// -> 320x256
 	const int h2 = 1024;
 	const int w3 = 1440;	// -> 320x200
-	const int h3 = 900;		
+	const int h3 = 900;
 
-	int d1 = (w1 - sz.cx)*(w1 - sz.cx) - (h1 - sz.cy)*(h1 - sz.cy);
-	int d2 = (w2 - sz.cx)*(w2 - sz.cx) - (h2 - sz.cy)*(h2 - sz.cy);
-	int d3 = (w3 - sz.cx)*(w3 - sz.cx) - (h3 - sz.cy)*(h3 - sz.cy);
-
-	if (d1 < d2 && d1 < d3)
+	if (sz.cx == w1 && sz.cy == h1)
 	{
 		result.cx = 320;
 		result.cy = 240;
 	}
-	else if (d2 < d3)
+	else if (sz.cx == w2 && sz.cy == h2)
 	{
 		result.cx = 320;
 		result.cy = 256;
 	}
-	else
+	else if (sz.cx == w3 && sz.cy == h3)
 	{
 		result.cx = 320;
 		result.cy = 200;
+	}
+	else
+	{
+		double aspect = (double)sz.cx/sz.cy;
+		double d1 = fabs(aspect - (double)w1/h1);
+		double d2 = fabs(aspect - (double)w2/h2);
+		double d3 = fabs(aspect - (double)w3/h3);
+
+		if (d1 <= d2 && d1 <= d3)
+		{
+			result.cx = 320;
+			result.cy = 240;
+		}
+		else if (d2 <= d3)
+		{
+			result.cx = 320;
+			result.cy = 256;
+		}
+		else
+		{
+			result.cx = 320;
+			result.cy = 200;
+		}
 	}
 
 	return result;
@@ -79,26 +100,45 @@ SIZE GetThumbSize(SIZE sz)
 	const int w2 = 1280;	// -> 320x256
 	const int h2 = 1024;
 	const int w3 = 1440;	// -> 320x200
-	const int h3 = 900;		
+	const int h3 = 900;
 
-	int d1 = (w1 - sz.cx)*(w1 - sz.cx) - (h1 - sz.cy)*(h1 - sz.cy);
-	int d2 = (w2 - sz.cx)*(w2 - sz.cx) - (h2 - sz.cy)*(h2 - sz.cy);
-	int d3 = (w3 - sz.cx)*(w3 - sz.cx) - (h3 - sz.cy)*(h3 - sz.cy);
-
-	if (d1 < d2 && d1 < d3)
+	if (sz.cx == w1 && sz.cy == h1)
 	{
 		result.cx = 80;
 		result.cy = 60;
 	}
-	else if (d2 < d3)
+	else if (sz.cx == w2 && sz.cy == h2)
 	{
 		result.cx = 80;
 		result.cy = 64;
 	}
-	else
+	else if (sz.cx == w3 && sz.cy == h3)
 	{
 		result.cx = 80;
 		result.cy = 50;
+	}
+	else
+	{
+		double aspect = (double)sz.cx/sz.cy;
+		double d1 = fabs(aspect - (double)w1/h1);
+		double d2 = fabs(aspect - (double)w2/h2);
+		double d3 = fabs(aspect - (double)w3/h3);
+
+		if (d1 <= d2 && d1 <= d3)
+		{
+			result.cx = 80;
+			result.cy = 60;
+		}
+		else if (d2 <= d3)
+		{
+			result.cx = 80;
+			result.cy = 64;
+		}
+		else
+		{
+			result.cx = 80;
+			result.cy = 50;
+		}
 	}
 
 	return result;

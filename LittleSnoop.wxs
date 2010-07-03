@@ -5,17 +5,17 @@
 	<Product Id='{DC4CC7D0-A22C-4404-8848-C1E3C9ABB98F}'
 		Name='Little Snoop'
 		Language='1033'
-        Version='1.0'
+        Version='1.1.3'
         Manufacturer='Snoop on.me'
         UpgradeCode='{6D3B4D39-2A1A-4ed0-AF23-19AED6C93122}' >
         
 		<Package Description='Little Snoop'
-			Comments='Little Snoop is a small open source utility required by Snoop on.me service. Source code is available at www.github.com/maximk/Little-Snoop. For more information visit snoopon.me.'
+			Comments='Little Snoop is a small application required by Snoopon.me. Source code is available at www.github.com/maximk/Little-Snoop. For more information visit snoopon.me.'
 			Manufacturer='Snoop on.me'
 			InstallerVersion='200'
 			Compressed='yes' />
 
-        <Media Id="1" Cabinet="LittleSnoop.cab" EmbedCab="yes" /> 
+        <Media Id="1" Cabinet="LittleSnoop.cab" EmbedCab="yes" />
 
 		<Property Id="LITTLE_SNOOP_START_VIA_REGISTRY">1</Property>
 
@@ -23,7 +23,7 @@
 			<Directory Id='ProgramFilesFolder' Name='PFiles'>
 				<Directory Id='INSTALLDIR' Name='Little Snoop' />
 			</Directory>
-			
+
 			<Directory Id="ProgramMenuFolder">
 				<Directory Id="ApplicationProgramsFolder" Name="Snoop on.me"/>
 			</Directory>
@@ -133,11 +133,11 @@
 
 			<ComponentRef Id='ApplicationShortcuts' />
 		</Feature>
-		
+
 		<WixVariable Id="WixUILicenseRtf" Value="install/License.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value="install/top_banner.bmp" />
 		<WixVariable Id="WixUIDialogBmp" Value="install/background.bmp" />
-		
+
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 		<Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="After the first launch Little Snoop will display a dialog box to help you create an account with Snoop on.me or connect to the existing account." />
 		<Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
@@ -146,20 +146,21 @@
 		<UI>
 			<UIRef Id="WixUI_InstallDir" />
 			<Publish Dialog="ExitDialog"
-				Control="Finish" 
-				Event="DoAction" 
+				Control="Finish"
+				Event="DoAction"
 				Value="LaunchApplication">
-				
+
 				WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed
-				
+
 			</Publish>
 		</UI>
-		
+
 		<Property Id="WixShellExecTarget" Value="[#LittleSnoop.exe]" />
-		
+
 		<CustomAction Id="LaunchApplication"
 			BinaryKey="WixCA"
 			DllEntry="WixShellExec"
 			Impersonate="yes" />
+
 	</Product>
 </Wix>

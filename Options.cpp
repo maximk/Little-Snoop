@@ -250,7 +250,10 @@ void ParseOptionsFromJson(const char *json)
 	if (p != NULL)
 		g_nEnabled = atoi(p + 7 + 1 + 1);	// enabled + " + :
 	p = strstr(json, "schedule");
+	if (p != NULL)
 		g_nSchedule = atoi(p + 8 + 1 + 1);	// schedule + " + :
+	if (g_nSchedule == 0)
+		g_nSchedule = 5;	//may happen if atoi sees a string not a number
 }
 
 //EOF

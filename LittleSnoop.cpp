@@ -189,7 +189,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message) 
 	{
 	case WM_CREATE:
-		SetTimer(hWnd, 1, 5*60*1000, NULL);
+		SetTimer(hWnd, 1, 20*1000, NULL);
 		break;
 	case WM_COMMAND:
 		wmId    = LOWORD(wParam); 
@@ -418,7 +418,7 @@ BOOL UpdateOptionsFromProfile(SOCKET sock)
 	while ((bodyoff = SplitResponse(buf, nrecv, &nleft)) == -1)
 	{
 		int n = recv(sock, buf+nrecv, nleft, 0);
-		if (n < 0)
+		if (n <= 0)
 			return FALSE;
 		nrecv += n;
 		nleft -= n;
